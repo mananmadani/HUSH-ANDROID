@@ -1,0 +1,92 @@
+# Hush
+
+[![Build](https://github.com/mananmadani/HUSH-ANDROID/actions/workflows/build.yml/badge.svg)](https://github.com/mananmadani/HUSH-ANDROID/actions/workflows/build.yml)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
+![Android 8.0+](https://img.shields.io/badge/Android-8.0%2B-3DDC84?logo=android&logoColor=white)
+![Kotlin](https://img.shields.io/badge/Kotlin-Jetpack%20Compose-7F52FF?logo=kotlin&logoColor=white)
+
+**A quiet music player for Android.** Hush streams music from YouTube Music with no ads, no tracking
+and no account. It does one job and leaves everything else out.
+
+## Features
+
+- **Home and search:** curated shelves and song search.
+- **Full player:** queue, shuffle, repeat, seek, and an endless "up next" built from related songs.
+- **Background playback:** notification and lock-screen controls (Media3).
+- **Library:** liked songs and your own playlists, stored on your device.
+- **Private by design:** no sign-in, no analytics, no ads, no servers of our own. See [PRIVACY.md](PRIVACY.md).
+
+What Hush deliberately does not have: lyrics, social features, recommendations based on your history,
+accounts, or telemetry of any kind.
+
+## Install
+
+Download the latest APK from the [Releases](https://github.com/mananmadani/HUSH-ANDROID/releases)
+page and open it on your phone (you may need to allow installing from unknown sources).
+Requires Android 8.0 (API 26) or newer.
+
+## Build from source
+
+You need JDK 17 and the Android SDK (API 34). The easiest route is Android Studio: open the
+project and run the `app` configuration.
+
+From the command line, with [Gradle](https://gradle.org/) 8.7 or newer installed:
+
+```bash
+gradle assembleDebug     # debug APK  -> app/build/outputs/apk/debug/
+gradle assembleRelease   # release APK -> app/build/outputs/apk/release/
+```
+
+No Android SDK locally? Fork the repo and run the **CI** workflow from the Actions tab; the APK is
+attached to the run as an artifact.
+
+## How it works
+
+```
+UI (Jetpack Compose)  ->  HushVm  ->  YtMusic (NewPipeExtractor)   search, related, stream links
+                              |
+                              +->  PlayerController -> PlaybackService (Media3 / ExoPlayer)
+                              +->  Repo -> Room (liked songs, playlists)
+```
+
+Queue items carry the YouTube watch URL. The real audio stream link is resolved right before each
+track loads and cached for a few hours, so long queues never hold expired links.
+
+| Path | Purpose |
+| --- | --- |
+| `app/src/main/java/app/hush/net` | OkHttp downloader and the YouTube Music wrapper |
+| `app/src/main/java/app/hush/player` | Foreground playback service and its UI-side controller |
+| `app/src/main/java/app/hush/data` | Room database and repository |
+| `app/src/main/java/app/hush/ui` | Compose screens, components and theme |
+
+## Disclaimer
+
+Hush is an independent project. It is **not affiliated with, endorsed by, or sponsored by Google
+LLC or YouTube**. "YouTube" and "YouTube Music" are trademarks of Google LLC.
+
+Hush gets its data through [NewPipeExtractor](https://github.com/TeamNewPipe/NewPipeExtractor),
+which uses YouTube's unofficial, undocumented endpoints. This may conflict with YouTube's Terms of
+Service, and it can stop working at any time when YouTube changes things. When that happens, updating
+the NewPipeExtractor version in `app/build.gradle.kts` is usually the fix. Use Hush at your own risk
+and for personal use. Please support the artists you listen to.
+
+## Contributing
+
+Issues and pull requests are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md) first, and keep
+in mind the project's goal: **small and focused**. Features that add accounts, tracking, or
+clutter will not be accepted.
+
+## Security
+
+Please report vulnerabilities privately. See [SECURITY.md](SECURITY.md).
+
+## License
+
+Hush is free software released under the [GNU General Public License v3.0](LICENSE), as required by
+its use of NewPipeExtractor (GPLv3).
+
+## Acknowledgements
+
+- [NewPipeExtractor](https://github.com/TeamNewPipe/NewPipeExtractor) by the NewPipe team
+- [AndroidX Media3](https://developer.android.com/media/media3), [Room](https://developer.android.com/training/data-storage/room),
+  [Jetpack Compose](https://developer.android.com/compose), [OkHttp](https://square.github.io/okhttp/) and [Coil](https://coil-kt.github.io/coil/)
