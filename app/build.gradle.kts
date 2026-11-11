@@ -88,7 +88,7 @@ dependencies {
     ksp("androidx.room:room-compiler:$room")
 
     // Networking + images
-    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("com.squareup.okhttp3:okhttp:5.5.1")
     implementation("io.coil-kt:coil-compose:2.6.0")
 
     // YouTube / YouTube Music data, no Google APIs, no account
