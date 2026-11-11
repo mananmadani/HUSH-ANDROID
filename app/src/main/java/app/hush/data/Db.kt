@@ -10,6 +10,8 @@ import androidx.room.PrimaryKey
 import androidx.room.Query
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import kotlinx.coroutines.flow.Flow
 
 /** A song. `url` is the watch URL and doubles as the unique id and the player's media id. */
@@ -33,6 +35,10 @@ data class PlaylistEntity(
 
 @Entity(tableName = "playlist_items", primaryKeys = ["playlistId", "url"])
 data class PlaylistItemEntity(val playlistId: Long, val url: String, val at: Long)
+
+/** One row per song played; the latest play time wins. Kept only on the device. */
+@Entity(tableName = "history")
+data class HistoryEntity(@PrimaryKey val url: String, val at: Long)
 
 data class PlaylistInfo(val id: Long, val name: String, val cnt: Int)
 
@@ -83,11 +89,37 @@ interface HushDao {
             "WHERE i.playlistId = :pid ORDER BY i.at ASC"
     )
     fun playlistSongs(pid: Long): Flow<List<SongEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun addHistory(item: HistoryEntity)
+
+    /** Keep only the 50 most recent plays. */
+    @Query("DELETE FROM history WHERE url NOT IN (SELECT url FROM history ORDER BY at DESC LIMIT 50)")
+    suspend fun trimHistory()
+
+    @Query("SELECT s.* FROM songs s JOIN history h ON s.url = h.url ORDER BY h.at DESC LIMIT 20")
+    fun recent(): Flow<List<SongEntity>>
+
+    @Query("DELETE FROM history")
+    suspend fun clearHistory()
+}
+
+/** v1 -> v2: adds the history table. Existing likes and playlists are untouched. */
+private val MIGRATION_1_2 = object : Migration(1, 2) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `history` " +
+                "(`url` TEXT NOT NULL, `at` INTEGER NOT NULL, PRIMARY KEY(`url`))"
+        )
+    }
 }
 
 @Database(
-    entities = [SongEntity::class, LikedEntity::class, PlaylistEntity::class, PlaylistItemEntity::class],
-    version = 1,
+    entities = [
+        SongEntity::class, LikedEntity::class, PlaylistEntity::class,
+        PlaylistItemEntity::class, HistoryEntity::class
+    ],
+    version = 2,
     exportSchema = false
 )
 abstract class HushDb : RoomDatabase() {
@@ -95,6 +127,8 @@ abstract class HushDb : RoomDatabase() {
 
     companion object {
         fun create(context: Context): HushDb =
-            Room.databaseBuilder(context, HushDb::class.java, "hush.db").build()
+            Room.databaseBuilder(context, HushDb::class.java, "hush.db")
+                .addMigrations(MIGRATION_1_2)
+                .build()
     }
 }

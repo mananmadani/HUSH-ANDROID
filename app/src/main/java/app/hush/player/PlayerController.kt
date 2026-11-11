@@ -41,7 +41,11 @@ data class PlayerState(
 }
 
 /** UI-side handle to the playback service. Lives as long as the app process. */
-class PlayerController(private val context: Context) {
+class PlayerController(
+    private val context: Context,
+    /** Called each time a new track starts, used for the on-device "Recently played" row. */
+    private val onTrackStarted: (SongEntity) -> Unit = {}
+) {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private var controller: MediaController? = null
@@ -54,9 +58,11 @@ class PlayerController(private val context: Context) {
         override fun onEvents(player: Player, events: Player.Events) = refresh()
 
         override fun onMediaItemTransition(item: MediaItem?, reason: Int) {
-            // Reached the end of the queue: quietly append related songs so music keeps going.
             val c = controller ?: return
-            if (item != null && !c.hasNextMediaItem()) extendQueue(item.mediaId)
+            if (item == null) return
+            onTrackStarted(item.toSong())
+            // Reached the end of the queue: quietly append related songs so music keeps going.
+            if (!c.hasNextMediaItem()) extendQueue(item.mediaId)
         }
     }
 
@@ -114,6 +120,14 @@ class PlayerController(private val context: Context) {
             }
         }
     }
+
+    private fun MediaItem.toSong() = SongEntity(
+        url = mediaId,
+        title = mediaMetadata.title?.toString().orEmpty(),
+        artist = mediaMetadata.artist?.toString().orEmpty(),
+        thumb = mediaMetadata.artworkUri?.toString(),
+        durationSec = 0
+    )
 
     private fun toItem(s: SongEntity): MediaItem =
         MediaItem.Builder()

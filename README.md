@@ -12,14 +12,16 @@ and no account. It does one job and leaves everything else out.
 
 ## Features
 
-- **Home and search:** curated shelves and song search.
+- **Home that fits you:** rows for your country and language, "Because you liked ..." picks built
+  from your liked songs, and a "Recently played" row. All of this is worked out on your phone.
+- **Search:** find any song on YouTube Music.
 - **Full player:** queue, shuffle, repeat, seek, and an endless "up next" built from related songs.
 - **Background playback:** notification and lock-screen controls (Media3).
 - **Library:** liked songs and your own playlists, stored on your device.
 - **Private by design:** no sign-in, no analytics, no ads, no servers of our own. See [PRIVACY.md](PRIVACY.md).
 
-What Hush deliberately does not have: lyrics, social features, recommendations based on your history,
-accounts, or telemetry of any kind.
+What Hush deliberately does not have: lyrics, social features, accounts, cloud sync, or telemetry of
+any kind. Recommendations are built on your device from your own likes and history, and never leave it.
 
 ## Download
 

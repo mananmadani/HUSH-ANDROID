@@ -7,6 +7,16 @@ class Repo(private val dao: HushDao) {
     fun playlistName(id: Long) = dao.playlistName(id)
     fun playlistSongs(id: Long) = dao.playlistSongs(id)
 
+    fun recent() = dao.recent()
+
+    suspend fun recordPlay(song: SongEntity) {
+        dao.upsertSong(song)
+        dao.addHistory(HistoryEntity(song.url, System.currentTimeMillis()))
+        dao.trimHistory()
+    }
+
+    suspend fun clearHistory() = dao.clearHistory()
+
     suspend fun setLiked(song: SongEntity, like: Boolean) {
         if (like) {
             dao.upsertSong(song)

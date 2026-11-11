@@ -5,9 +5,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -20,7 +22,9 @@ import androidx.compose.material.icons.automirrored.filled.QueueMusic
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material3.Button
@@ -77,53 +81,82 @@ fun ScreenTitle(text: String) {
 // --- Home ---------------------------------------------------------------------
 
 @Composable
+private fun ShelfRow(title: String, songs: List<app.hush.data.SongEntity>, vm: HushVm) {
+    Text(
+        title,
+        style = MaterialTheme.typography.titleMedium,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 8.dp)
+    )
+    LazyRow(
+        contentPadding = PaddingValues(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        itemsIndexed(songs, key = { _, s -> s.url }) { i, song ->
+            Column(
+                Modifier
+                    .width(140.dp)
+                    .clickable { vm.player.play(songs, i) }
+            ) {
+                Art(song.thumb, 140.dp, radius = 10.dp)
+                Text(
+                    song.title,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(top = 6.dp)
+                )
+                Text(
+                    song.artist,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    }
+}
+
+@Composable
 fun HomeScreen(vm: HushVm) {
+    val recent by vm.recent.collectAsState()
+    val nothingToShow = vm.shelves.isEmpty() && recent.isEmpty()
+
     Column(Modifier.fillMaxSize()) {
-        ScreenTitle("Hush")
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 16.dp, end = 4.dp, top = 16.dp, bottom = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                "Hush",
+                style = MaterialTheme.typography.headlineMedium,
+                modifier = Modifier.weight(1f)
+            )
+            if (vm.homeLoading && !nothingToShow) {
+                CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+            }
+            IconButton(onClick = vm::loadHome) {
+                Icon(Icons.Filled.Refresh, contentDescription = "Refresh")
+            }
+        }
+
         when {
-            vm.homeLoading && vm.shelves.isEmpty() ->
+            nothingToShow && vm.homeLoading ->
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
 
-            vm.homeError != null && vm.shelves.isEmpty() ->
+            nothingToShow && vm.homeError != null ->
                 CenterMessage(vm.homeError!!) { Button(onClick = vm::loadHome) { Text("Retry") } }
 
             else -> LazyColumn(Modifier.fillMaxSize()) {
-                vm.shelves.forEach { shelf ->
-                    item(key = shelf.title) {
-                        Text(
-                            shelf.title,
-                            style = MaterialTheme.typography.titleMedium,
-                            modifier = Modifier.padding(start = 16.dp, top = 12.dp, bottom = 8.dp)
-                        )
-                        LazyRow(
-                            contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 16.dp),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            itemsIndexed(shelf.songs, key = { _, s -> s.url }) { i, song ->
-                                Column(
-                                    Modifier
-                                        .width(140.dp)
-                                        .clickable { vm.player.play(shelf.songs, i) }
-                                ) {
-                                    Art(song.thumb, 140.dp, radius = 10.dp)
-                                    Text(
-                                        song.title,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis,
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        modifier = Modifier.padding(top = 6.dp)
-                                    )
-                                    Text(
-                                        song.artist,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis,
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                            }
-                        }
-                    }
+                if (recent.isNotEmpty()) {
+                    item { ShelfRow("Recently played", recent, vm) }
+                }
+                itemsIndexed(vm.shelves) { _, shelf ->
+                    ShelfRow(shelf.title, shelf.songs, vm)
                 }
             }
         }
@@ -196,6 +229,14 @@ fun LibraryScreen(vm: HushVm, onOpenLiked: () -> Unit, onOpenPlaylist: (Long) ->
                     title = p.name,
                     subtitle = "${p.cnt} songs",
                     onClick = { onOpenPlaylist(p.id) }
+                )
+            }
+            item {
+                LibraryRow(
+                    icon = { Icon(Icons.Filled.History, null) },
+                    title = "Clear listening history",
+                    subtitle = "Empties Recently played on Home",
+                    onClick = vm::clearHistory
                 )
             }
         }
