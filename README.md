@@ -1,6 +1,8 @@
 # Hush
 
 [![Build](https://github.com/mananmadani/HUSH-ANDROID/actions/workflows/build.yml/badge.svg)](https://github.com/mananmadani/HUSH-ANDROID/actions/workflows/build.yml)
+[![Latest release](https://img.shields.io/github/v/release/mananmadani/HUSH-ANDROID?label=release)](https://github.com/mananmadani/HUSH-ANDROID/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/mananmadani/HUSH-ANDROID/total?label=downloads)](https://github.com/mananmadani/HUSH-ANDROID/releases)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 ![Android 8.0+](https://img.shields.io/badge/Android-8.0%2B-3DDC84?logo=android&logoColor=white)
 ![Kotlin](https://img.shields.io/badge/Kotlin-Jetpack%20Compose-7F52FF?logo=kotlin&logoColor=white)
@@ -19,11 +21,16 @@ and no account. It does one job and leaves everything else out.
 What Hush deliberately does not have: lyrics, social features, recommendations based on your history,
 accounts, or telemetry of any kind.
 
-## Install
+## Download
 
-Download the latest APK from the [Releases](https://github.com/mananmadani/HUSH-ANDROID/releases)
-page and open it on your phone (you may need to allow installing from unknown sources).
-Requires Android 8.0 (API 26) or newer.
+[![Download Hush](https://img.shields.io/badge/Download-Latest%20APK-3DDC84?style=for-the-badge&logo=android&logoColor=white)](https://github.com/mananmadani/HUSH-ANDROID/releases/latest)
+
+1. Tap the button above, then download the `.apk` file listed under **Assets**.
+2. Open the file on your phone. If asked, allow installing from unknown sources.
+3. Open Hush and allow notifications, so the playback controls can show.
+
+Requires Android 8.0 (API 26) or newer. Releases are signed with a permanent key, so new versions
+install over the old one and keep your liked songs and playlists.
 
 ## Build from source
 
