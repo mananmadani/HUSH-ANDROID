@@ -30,6 +30,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -68,6 +71,8 @@ fun HomeScreen(vm: HushVm, onSettings: () -> Unit) {
         ?: shelves.firstOrNull { !it.title.startsWith("Because") }
     val hero = trending?.songs?.firstOrNull()
     val others = shelves.filter { it !== trending }
+    val playlists by vm.playlists.collectAsState()
+    var pickFor by remember { mutableStateOf<SongEntity?>(null) }
 
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 190.dp)) {
         item {
@@ -120,7 +125,8 @@ fun HomeScreen(vm: HushVm, onSettings: () -> Unit) {
                         actions = listOf(
                             "Play next" to { vm.player.playNext(song) },
                             "Add to queue" to { vm.player.addToQueue(song) }
-                        )
+                        ),
+                        onAddToPlaylist = { pickFor = song }
                     )
                 }
             }
@@ -166,6 +172,15 @@ fun HomeScreen(vm: HushVm, onSettings: () -> Unit) {
                 modifier = Modifier.fillMaxWidth().padding(top = 32.dp)
             )
         }
+    }
+
+    pickFor?.let { song ->
+        PlaylistPickerDialog(
+            playlists = playlists,
+            onPick = { vm.addToPlaylist(it, song); pickFor = null },
+            onCreate = { n -> vm.createPlaylist(n, song); pickFor = null },
+            onDismiss = { pickFor = null }
+        )
     }
 }
 

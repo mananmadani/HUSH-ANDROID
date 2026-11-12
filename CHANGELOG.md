@@ -6,6 +6,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+## [1.0.5]
+
+### Fixed
+- Adding songs to a playlist: every song row now has an "add to playlist" button, and the picker
+  lists your playlists (or lets you create one) and confirms with a message. Works in Search,
+  Library lists, mood lists and the player.
+
 ## [1.0.4]
 
 ### Fixed

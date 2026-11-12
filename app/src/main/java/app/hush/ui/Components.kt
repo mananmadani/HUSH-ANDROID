@@ -1,6 +1,12 @@
 package app.hush.ui
 
 import android.content.Context
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
+import androidx.compose.foundation.layout.heightIn
+import android.widget.Toast
 import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -223,7 +229,8 @@ fun HushChip(label: String, selected: Boolean, onClick: () -> Unit) {
 fun SongRow(
     song: SongEntity,
     onClick: () -> Unit,
-    actions: List<Pair<String, () -> Unit>>
+    actions: List<Pair<String, () -> Unit>>,
+    onAddToPlaylist: (() -> Unit)? = null
 ) {
     var menu by remember { mutableStateOf(false) }
     Row(
@@ -253,6 +260,11 @@ fun SongRow(
                 fontSize = 13.sp,
                 color = Dusk.Muted
             )
+        }
+        if (onAddToPlaylist != null) {
+            IconButton(onClick = onAddToPlaylist) {
+                Icon(Icons.AutoMirrored.Filled.PlaylistAdd, contentDescription = "Add to playlist", tint = Dusk.Muted)
+            }
         }
         Box {
             IconButton(onClick = { menu = true }) {
@@ -296,7 +308,12 @@ fun SongList(
                 add("Share" to { shareSong(context, song.title, song.artist, song.url) })
                 extraAction?.let { (label, run) -> add(label to { run(song) }) }
             }
-            SongRow(song, onClick = { vm.player.play(songs, index) }, actions = actions)
+            SongRow(
+                song,
+                onClick = { vm.player.play(songs, index) },
+                actions = actions,
+                onAddToPlaylist = { pickFor = song }
+            )
         }
     }
 
@@ -310,6 +327,7 @@ fun SongList(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlaylistPickerDialog(
     playlists: List<PlaylistInfo>,
@@ -317,38 +335,67 @@ fun PlaylistPickerDialog(
     onCreate: (String) -> Unit,
     onDismiss: () -> Unit
 ) {
+    val context = LocalContext.current
     var name by remember { mutableStateOf("") }
-    AlertDialog(
+    ModalBottomSheet(
         onDismissRequest = onDismiss,
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         containerColor = Dusk.Surface,
-        title = { Text("Add to playlist") },
-        text = {
-            Column {
-                playlists.forEach { p ->
-                    Text(
-                        p.name,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onPick(p.id) }
-                            .padding(vertical = 12.dp)
-                    )
-                }
+        contentColor = Dusk.Text
+    ) {
+        Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp).padding(bottom = 28.dp)) {
+            Text("Add to playlist", style = MaterialTheme.typography.titleMedium)
+
+            Row(
+                Modifier.fillMaxWidth().padding(top = 14.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
                     singleLine = true,
-                    label = { Text("New playlist") },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 8.dp)
+                    placeholder = { Text("New playlist name", color = Dusk.Muted) },
+                    modifier = Modifier.weight(1f)
+                )
+                TextButton(
+                    onClick = {
+                        Toast.makeText(context, "Added to ${name.trim()}", Toast.LENGTH_SHORT).show()
+                        onCreate(name.trim())
+                    },
+                    enabled = name.isNotBlank()
+                ) { Text("Create") }
+            }
+
+            if (playlists.isNotEmpty()) {
+                Text(
+                    "Your playlists",
+                    fontSize = 13.sp,
+                    color = Dusk.Muted,
+                    modifier = Modifier.padding(top = 18.dp, bottom = 4.dp)
                 )
             }
-        },
-        confirmButton = {
-            TextButton(onClick = { onCreate(name) }, enabled = name.isNotBlank()) { Text("Create") }
-        },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
-    )
+            LazyColumn(Modifier.heightIn(max = 280.dp)) {
+                items(playlists, key = { it.id }) { p ->
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                Toast.makeText(context, "Added to ${p.name}", Toast.LENGTH_SHORT).show()
+                                onPick(p.id)
+                            }
+                            .padding(vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(Icons.AutoMirrored.Filled.PlaylistAdd, null, tint = MaterialTheme.colorScheme.primary)
+                        Column(Modifier.padding(start = 16.dp)) {
+                            Text(p.name, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                            Text("${p.cnt} songs", fontSize = 12.sp, color = Dusk.Muted)
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 @Composable
