@@ -6,6 +6,15 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+## [1.0.4]
+
+### Fixed
+- Text was dark and hard to read on the dark background; it is now light everywhere.
+- Cover art was blurry because YouTube sends tiny thumbnails; Hush now asks for the large version.
+
+### Added
+- "Developed by Manan Madani" at the bottom of Home and in Settings.
+
 ## [1.0.3]
 
 ### Added

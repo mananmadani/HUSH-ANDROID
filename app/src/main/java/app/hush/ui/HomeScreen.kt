@@ -36,6 +36,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -155,6 +156,15 @@ fun HomeScreen(vm: HushVm, onSettings: () -> Unit) {
             others.forEach { shelf ->
                 item { ShelfRow(shelf.title, shelf.songs, vm) }
             }
+        }
+        item {
+            Text(
+                "Developed by Manan Madani",
+                fontSize = 12.sp,
+                color = Dusk.Muted,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth().padding(top = 32.dp)
+            )
         }
     }
 }

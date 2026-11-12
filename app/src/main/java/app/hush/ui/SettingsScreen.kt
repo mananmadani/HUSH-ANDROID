@@ -112,6 +112,13 @@ fun SettingsScreen(vm: HushVm, onBack: () -> Unit) {
             color = Dusk.Muted,
             modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
         )
+        Text(
+            "Developed by Manan Madani",
+            fontSize = 13.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = Dusk.Muted,
+            modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp)
+        )
     }
 }
 

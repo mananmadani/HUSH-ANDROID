@@ -86,6 +86,15 @@ fun artBrush(seed: String): Brush {
     return Brush.linearGradient(listOf(pair.first, pair.second))
 }
 
+/** YouTube hands out tiny covers (often 60px). Ask for a big one so posters stay sharp. */
+fun hiRes(url: String): String {
+    var u = url
+    u = Regex("=w\\d+-h\\d+").replace(u, "=w720-h720")
+    u = Regex("=s\\d+").replace(u, "=s720")
+    u = Regex("/(default|mqdefault)\\.jpg").replace(u, "/hqdefault.jpg")
+    return u
+}
+
 @Composable
 fun Art(
     url: String?,
@@ -102,7 +111,7 @@ fun Art(
     ) {
         if (url != null) {
             AsyncImage(
-                model = url,
+                model = hiRes(url),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize()

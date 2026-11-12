@@ -49,7 +49,8 @@ fun QueueSheet(vm: HushVm, onDismiss: () -> Unit) {
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-        containerColor = Dusk.Surface
+        containerColor = Dusk.Surface,
+        contentColor = Dusk.Text
     ) {
         Column(Modifier.fillMaxWidth().padding(bottom = 24.dp)) {
             Text("Sleep timer", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(horizontal = 20.dp))
