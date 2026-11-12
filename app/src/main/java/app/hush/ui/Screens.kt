@@ -364,7 +364,7 @@ private fun ActionRow(
 }
 
 @Composable
-private fun Collage(thumbs: List<String>, seed: String, modifier: Modifier) {
+fun Collage(thumbs: List<String>, seed: String, modifier: Modifier) {
     Box(
         modifier
             .aspectRatio(1f)

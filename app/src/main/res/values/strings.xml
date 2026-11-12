@@ -1,0 +1,4 @@
+<resources>
+    <string name="widget_now_playing_desc">Cover, title and playback controls</string>
+    <string name="widget_mini_desc">A compact cover with a play button</string>
+</resources>

@@ -116,7 +116,16 @@ private fun HushRoot(vm: HushVm = viewModel()) {
             popEnterTransition = { fadeIn(tween(180)) },
             popExitTransition = { fadeOut(tween(180)) }
         ) {
-            composable("home") { Page { HomeScreen(vm, onSettings = { nav.navigate("settings") }) } }
+            composable("home") {
+                Page {
+                    HomeScreen(
+                        vm,
+                        onSettings = { nav.navigate("settings") },
+                        onOpenLiked = { nav.navigate("liked") },
+                        onOpenPlaylist = { nav.navigate("playlist/$it") }
+                    )
+                }
+            }
             composable("search") { Page { SearchScreen(vm) } }
             composable("library") {
                 Page {

@@ -6,6 +6,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+## [1.0.6]
+
+### Added
+- "Your playlists" row on Home with Liked songs and every playlist you made, with cover collages.
+- Two home-screen widgets: Now playing (4x2, cover, title, previous / play / next) and Mini (2x2).
+  Widgets show only what is playing on your phone and use your accent colour.
+
 ## [1.0.5]
 
 ### Fixed

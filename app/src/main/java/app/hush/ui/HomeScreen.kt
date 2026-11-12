@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
@@ -62,7 +63,12 @@ private fun greeting(): String {
 }
 
 @Composable
-fun HomeScreen(vm: HushVm, onSettings: () -> Unit) {
+fun HomeScreen(
+    vm: HushVm,
+    onSettings: () -> Unit,
+    onOpenLiked: () -> Unit,
+    onOpenPlaylist: (Long) -> Unit
+) {
     val recent by vm.recent.collectAsState()
     val shelves = vm.shelves
     val nothing = shelves.isEmpty() && recent.isEmpty()
@@ -72,6 +78,8 @@ fun HomeScreen(vm: HushVm, onSettings: () -> Unit) {
     val hero = trending?.songs?.firstOrNull()
     val others = shelves.filter { it !== trending }
     val playlists by vm.playlists.collectAsState()
+    val liked by vm.liked.collectAsState()
+    val thumbs by vm.playlistThumbs.collectAsState()
     var pickFor by remember { mutableStateOf<SongEntity?>(null) }
 
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 190.dp)) {
@@ -147,6 +155,46 @@ fun HomeScreen(vm: HushVm, onSettings: () -> Unit) {
                 item {
                     Box(Modifier.padding(top = 20.dp)) {
                         HeroCard(hero) { vm.player.play(trending.songs, 0) }
+                    }
+                }
+            }
+            if (liked.isNotEmpty() || playlists.isNotEmpty()) {
+                item {
+                    SectionTitle("Your playlists", Modifier.padding(start = 20.dp, top = 24.dp, bottom = 10.dp))
+                    LazyRow(
+                        contentPadding = PaddingValues(horizontal = 20.dp),
+                        horizontalArrangement = Arrangement.spacedBy(14.dp)
+                    ) {
+                        item {
+                            Column(Modifier.width(132.dp).clickable(onClick = onOpenLiked)) {
+                                Box(
+                                    Modifier
+                                        .size(132.dp)
+                                        .clip(RoundedCornerShape(22.dp))
+                                        .background(Brush.linearGradient(listOf(Dusk.Violet, Dusk.Pink))),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(Icons.Filled.Favorite, null, tint = Color.White, modifier = Modifier.size(38.dp))
+                                }
+                                Text("Liked songs", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, modifier = Modifier.padding(top = 8.dp))
+                                Text("${liked.size} songs", fontSize = 12.sp, color = Dusk.Muted)
+                            }
+                        }
+                        items(playlists.size) { i ->
+                            val p = playlists[i]
+                            Column(Modifier.width(132.dp).clickable { onOpenPlaylist(p.id) }) {
+                                Collage(thumbs[p.id].orEmpty(), p.name, Modifier.size(132.dp))
+                                Text(
+                                    p.name,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier.padding(top = 8.dp)
+                                )
+                                Text("${p.cnt} songs", fontSize = 12.sp, color = Dusk.Muted)
+                            }
+                        }
                     }
                 }
             }

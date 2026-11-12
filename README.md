@@ -22,6 +22,8 @@ and no account. It does one job and leaves everything else out.
 - **Background playback:** notification and lock-screen controls (Media3).
 - **Library:** liked songs and your own playlists with cover collages, stored on your device,
   plus backup and restore to a file you keep.
+- **Home-screen widgets:** a 4x2 "Now playing" widget with controls and a compact 2x2 one.
+- **Your playlists on Home:** jump straight into Liked songs or any playlist.
 - **Queue and sleep timer:** see what is up next, jump to or remove songs, and stop after 15-60
   minutes or at the end of the song. Share any song as a link.
 - **Private by design:** no sign-in, no analytics, no ads, no servers of our own. See [PRIVACY.md](PRIVACY.md).

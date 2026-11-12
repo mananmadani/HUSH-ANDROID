@@ -8,7 +8,10 @@ import app.hush.player.PlayerController
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import app.hush.widget.WidgetUpdater
 import org.schabi.newpipe.extractor.NewPipe
 import org.schabi.newpipe.extractor.localization.ContentCountry
 import org.schabi.newpipe.extractor.localization.Localization
@@ -36,6 +39,14 @@ class HushApp : Application() {
         val io = CoroutineScope(SupervisorJob() + Dispatchers.IO)
         player = PlayerController(this) { song ->
             io.launch { repo.recordPlay(song) }
+        }
+
+        // Keep the home-screen widgets in step with what is playing.
+        io.launch {
+            player.state
+                .map { Triple(it.mediaId, it.playing, it.title) }
+                .distinctUntilChanged()
+                .collect { WidgetUpdater.update(this@HushApp) }
         }
     }
 }

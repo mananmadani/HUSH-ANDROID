@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/w_bg">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="10dp">
+
+        <ImageView
+            android:id="@+id/w_art"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:contentDescription="Open Hush"
+            android:scaleType="fitCenter"
+            android:src="@drawable/w_art_placeholder" />
+
+        <TextView
+            android:id="@+id/w_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="46dp"
+            android:ellipsize="end"
+            android:fontFamily="@font/inter_semibold"
+            android:maxLines="1"
+            android:text="Hush"
+            android:textColor="#F2F0FA"
+            android:textSize="13sp" />
+
+        <TextView
+            android:id="@+id/w_artist"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="46dp"
+            android:ellipsize="end"
+            android:fontFamily="@font/inter_regular"
+            android:maxLines="1"
+            android:text="Tap to play"
+            android:textColor="#A19DB4"
+            android:textSize="11sp" />
+    </LinearLayout>
+
+    <FrameLayout
+        android:id="@+id/w_play_wrap"
+        android:layout_width="42dp"
+        android:layout_height="42dp"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="10dp"
+        android:contentDescription="Play or pause">
+
+        <ImageView
+            android:id="@+id/w_play_bg"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:src="@drawable/w_play_bg" />
+
+        <ImageView
+            android:id="@+id/w_play"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_w_play" />
+    </FrameLayout>
+</FrameLayout>

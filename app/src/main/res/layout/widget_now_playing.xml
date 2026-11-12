@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/w_bg"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:padding="12dp">
+
+    <ImageView
+        android:id="@+id/w_art"
+        android:layout_width="84dp"
+        android:layout_height="84dp"
+        android:contentDescription="Open Hush"
+        android:scaleType="centerCrop"
+        android:src="@drawable/w_art_placeholder" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="14dp"
+        android:layout_weight="1"
+        android:gravity="center_vertical"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/w_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:fontFamily="@font/inter_semibold"
+            android:maxLines="1"
+            android:text="Hush"
+            android:textColor="#F2F0FA"
+            android:textSize="15sp" />
+
+        <TextView
+            android:id="@+id/w_artist"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:fontFamily="@font/inter_regular"
+            android:maxLines="1"
+            android:text="Tap to play something"
+            android:textColor="#A19DB4"
+            android:textSize="12sp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <FrameLayout
+                android:id="@+id/w_prev"
+                android:layout_width="38dp"
+                android:layout_height="38dp"
+                android:contentDescription="Previous">
+
+                <ImageView
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_w_prev" />
+            </FrameLayout>
+
+            <FrameLayout
+                android:id="@+id/w_play_wrap"
+                android:layout_width="46dp"
+                android:layout_height="46dp"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:contentDescription="Play or pause">
+
+                <ImageView
+                    android:id="@+id/w_play_bg"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/w_play_bg" />
+
+                <ImageView
+                    android:id="@+id/w_play"
+                    android:layout_width="26dp"
+                    android:layout_height="26dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_w_play" />
+            </FrameLayout>
+
+            <FrameLayout
+                android:id="@+id/w_next"
+                android:layout_width="38dp"
+                android:layout_height="38dp"
+                android:contentDescription="Next">
+
+                <ImageView
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_w_next" />
+            </FrameLayout>
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>
