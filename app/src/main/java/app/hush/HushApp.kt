@@ -22,6 +22,7 @@ class HushApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        Prefs.init(this)
 
         // Ask YouTube Music in the phone's own language and country.
         NewPipe.init(

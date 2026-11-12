@@ -11,6 +11,13 @@ Hush is built to collect nothing.
 - **On-device recommendations.** The "Because you liked ..." rows are built from your liked songs
   on the phone. The only thing sent out is an ordinary request to YouTube for songs related to one
   song title, the same as playing it.
+- **Recent searches and settings.** Your last 8 searches and your settings (accent colour, suggestions
+  switch) are stored only on the device. Clear searches any time in Search or Settings.
+- **Search suggestions.** While you type, the partial text is sent to YouTube to get suggestions.
+  This is the only time unfinished searches leave your phone. Turn it off in Settings and nothing is
+  sent until you press search.
+- **Backup file.** "Back up library" writes your likes and playlists to a file you choose. Hush never
+  uploads it; where you store it is up to you.
 - **Region and language.** Hush reads your phone's country and language and uses them in its requests
   to YouTube so results feel local. Nothing else about your device is sent.
 - **Network requests.** To search and play music, the app contacts YouTube and Google video hosts

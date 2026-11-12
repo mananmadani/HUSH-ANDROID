@@ -36,6 +36,11 @@ object YtMusic {
             .map { it.toSong() }
     }
 
+    /** Search-as-you-type completions from YouTube. Only called if suggestions are switched on. */
+    suspend fun suggestions(query: String): List<String> = withContext(Dispatchers.IO) {
+        yt.suggestionExtractor.suggestionList(query).take(6)
+    }
+
     private data class Cached(val streamUrl: String, val expiresAt: Long)
 
     private val cache = ConcurrentHashMap<String, Cached>()

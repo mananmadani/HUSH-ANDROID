@@ -6,6 +6,19 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+## [1.0.3]
+
+### Added
+- New "Dusk" design: floating navigation, glass mini player, accent colour choice, bundled Inter font.
+- Home: mood chips, a featured card and a ranked list for your country.
+- Search: live suggestions (optional), recent searches and mood tiles.
+- Library: cover collages for playlists, backup and restore to a file.
+- Player: colours taken from the cover art, swipe down to close, queue with jump and remove, sleep timer, share.
+- Settings screen.
+
+### Changed
+- Pull-to-refresh is a refresh button, as before.
+
 ## [1.0.2]
 
 ### Added

@@ -42,6 +42,9 @@ data class HistoryEntity(@PrimaryKey val url: String, val at: Long)
 
 data class PlaylistInfo(val id: Long, val name: String, val cnt: Int)
 
+/** One cover image of a song in a playlist, used to build the 2x2 collage. */
+data class PlaylistThumb(val playlistId: Long, val thumb: String?)
+
 @Dao
 interface HushDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
@@ -102,6 +105,28 @@ interface HushDao {
 
     @Query("DELETE FROM history")
     suspend fun clearHistory()
+
+    @Query(
+        "SELECT i.playlistId AS playlistId, s.thumb AS thumb FROM playlist_items i " +
+            "JOIN songs s ON s.url = i.url ORDER BY i.at ASC"
+    )
+    fun playlistThumbs(): Flow<List<PlaylistThumb>>
+
+    // Used by backup and restore
+    @Query("SELECT * FROM songs")
+    suspend fun allSongs(): List<SongEntity>
+
+    @Query("SELECT * FROM liked")
+    suspend fun allLiked(): List<LikedEntity>
+
+    @Query("SELECT * FROM playlists")
+    suspend fun allPlaylists(): List<PlaylistEntity>
+
+    @Query("SELECT * FROM playlist_items")
+    suspend fun allPlaylistItems(): List<PlaylistItemEntity>
+
+    @Query("SELECT id FROM playlists WHERE name = :name LIMIT 1")
+    suspend fun playlistIdByName(name: String): Long?
 }
 
 /** v1 -> v2: adds the history table. Existing likes and playlists are untouched. */

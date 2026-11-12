@@ -14,10 +14,16 @@ and no account. It does one job and leaves everything else out.
 
 - **Home that fits you:** rows for your country and language, "Because you liked ..." picks built
   from your liked songs, and a "Recently played" row. All of this is worked out on your phone.
-- **Search:** find any song on YouTube Music.
+- **Dusk design:** a dark, colourful interface with a floating navigation bar, mood chips on Home,
+  and a player that takes its colours from the cover art. Pick your accent colour in Settings.
+- **Search:** find any song on YouTube Music, with live suggestions (can be switched off),
+  recent searches and mood tiles.
 - **Full player:** queue, shuffle, repeat, seek, and an endless "up next" built from related songs.
 - **Background playback:** notification and lock-screen controls (Media3).
-- **Library:** liked songs and your own playlists, stored on your device.
+- **Library:** liked songs and your own playlists with cover collages, stored on your device,
+  plus backup and restore to a file you keep.
+- **Queue and sleep timer:** see what is up next, jump to or remove songs, and stop after 15-60
+  minutes or at the end of the song. Share any song as a link.
 - **Private by design:** no sign-in, no analytics, no ads, no servers of our own. See [PRIVACY.md](PRIVACY.md).
 
 What Hush deliberately does not have: lyrics, social features, accounts, cloud sync, or telemetry of
@@ -97,5 +103,6 @@ its use of NewPipeExtractor (GPLv3).
 ## Acknowledgements
 
 - [NewPipeExtractor](https://github.com/TeamNewPipe/NewPipeExtractor) by the NewPipe team
+- [Inter](https://rsms.me/inter/) typeface by Rasmus Andersson, bundled under the SIL Open Font License
 - [AndroidX Media3](https://developer.android.com/media/media3), [Room](https://developer.android.com/training/data-storage/room),
   [Jetpack Compose](https://developer.android.com/compose), [OkHttp](https://square.github.io/okhttp/) and [Coil](https://coil-kt.github.io/coil/)

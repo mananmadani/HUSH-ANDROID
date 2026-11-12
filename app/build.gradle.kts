@@ -12,8 +12,8 @@ android {
         applicationId = "app.hush"
         minSdk = 26 // NewPipeExtractor needs Java 8 time APIs; API 26+ has them natively
         targetSdk = 34
-        versionCode = 2
-        versionName = "1.0.2"
+        versionCode = 3
+        versionName = "1.0.3"
     }
 
     // Release signing is read from the environment (used by the GitHub release workflow).
@@ -90,6 +90,9 @@ dependencies {
     // Networking + images
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("io.coil-kt:coil-compose:2.6.0")
+
+    // Colour wash on the player, picked from the album art
+    implementation("androidx.palette:palette-ktx:1.0.0")
 
     // YouTube / YouTube Music data, no Google APIs, no account
     implementation("com.github.TeamNewPipe:NewPipeExtractor:v0.26.5")

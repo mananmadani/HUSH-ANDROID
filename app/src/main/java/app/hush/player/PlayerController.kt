@@ -13,6 +13,7 @@ import app.hush.data.SongEntity
 import app.hush.net.YtMusic
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,12 +33,32 @@ data class PlayerState(
     val shuffle: Boolean = false,
     val repeatMode: Int = Player.REPEAT_MODE_OFF,
     val hasNext: Boolean = false,
-    val hasPrev: Boolean = false
+    val hasPrev: Boolean = false,
+    /** Position of the current song in the queue. */
+    val index: Int = 0
 ) {
     /** The current track as a song, for liking / adding to playlists. */
     fun asSong(): SongEntity? = mediaId?.let {
         SongEntity(it, title, artist, art, durationMs / 1000)
     }
+}
+
+/** One row of the queue as shown in the queue sheet. */
+data class QueueItem(
+    val index: Int,
+    val mediaId: String,
+    val title: String,
+    val artist: String,
+    val art: String?
+)
+
+/** Sleep timer: stop after [minutes] (ending at [endsAtMs]) or at the end of the current song. */
+data class SleepState(
+    val minutes: Int = 0,
+    val endsAtMs: Long? = null,
+    val endOfSong: Boolean = false
+) {
+    val active: Boolean get() = endsAtMs != null || endOfSong
 }
 
 /** UI-side handle to the playback service. Lives as long as the app process. */
@@ -54,13 +75,36 @@ class PlayerController(
     private val _state = MutableStateFlow(PlayerState())
     val state: StateFlow<PlayerState> = _state.asStateFlow()
 
+    private val _queue = MutableStateFlow<List<QueueItem>>(emptyList())
+    val queue: StateFlow<List<QueueItem>> = _queue.asStateFlow()
+
+    private val _sleep = MutableStateFlow(SleepState())
+    val sleep: StateFlow<SleepState> = _sleep.asStateFlow()
+    private var sleepJob: Job? = null
+
     private val listener = object : Player.Listener {
-        override fun onEvents(player: Player, events: Player.Events) = refresh()
+        override fun onEvents(player: Player, events: Player.Events) {
+            if (events.contains(Player.EVENT_TIMELINE_CHANGED)) refreshQueue()
+            if (events.contains(Player.EVENT_PLAYBACK_STATE_CHANGED) &&
+                player.playbackState == Player.STATE_ENDED
+            ) {
+                // The queue finished, so an "end of song" sleep timer has done its job.
+                if (_sleep.value.endOfSong) _sleep.value = SleepState()
+            }
+            refresh()
+        }
 
         override fun onMediaItemTransition(item: MediaItem?, reason: Int) {
             val c = controller ?: return
             if (item == null) return
             onTrackStarted(item.toSong())
+
+            // "End of song" sleep timer: let the song finish, then stop before the next one.
+            if (_sleep.value.endOfSong && reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO) {
+                c.pause()
+                _sleep.value = SleepState()
+            }
+
             // Reached the end of the queue: quietly append related songs so music keeps going.
             if (!c.hasNextMediaItem()) extendQueue(item.mediaId)
         }
@@ -75,6 +119,7 @@ class PlayerController(
             c.addListener(listener)
             queued.forEach { it(c) }
             queued.clear()
+            refreshQueue()
             refresh()
         }, ContextCompat.getMainExecutor(context))
 
@@ -106,8 +151,23 @@ class PlayerController(
             shuffle = c.shuffleModeEnabled,
             repeatMode = c.repeatMode,
             hasNext = c.hasNextMediaItem(),
-            hasPrev = c.hasPreviousMediaItem()
+            hasPrev = c.hasPreviousMediaItem(),
+            index = c.currentMediaItemIndex
         )
+    }
+
+    private fun refreshQueue() {
+        val c = controller ?: return
+        _queue.value = (0 until c.mediaItemCount).map { i ->
+            val item = c.getMediaItemAt(i)
+            QueueItem(
+                index = i,
+                mediaId = item.mediaId,
+                title = item.mediaMetadata.title?.toString().orEmpty(),
+                artist = item.mediaMetadata.artist?.toString().orEmpty(),
+                art = item.mediaMetadata.artworkUri?.toString()
+            )
+        }
     }
 
     private fun extendQueue(lastMediaId: String) {
@@ -180,5 +240,47 @@ class PlayerController(
             Player.REPEAT_MODE_ALL -> Player.REPEAT_MODE_ONE
             else -> Player.REPEAT_MODE_OFF
         }
+    }
+
+    // --- Queue --------------------------------------------------------------
+
+    fun jumpTo(index: Int) = withController {
+        if (index in 0 until it.mediaItemCount) {
+            it.seekTo(index, 0L)
+            it.play()
+        }
+    }
+
+    fun removeAt(index: Int) = withController {
+        if (index in 0 until it.mediaItemCount) it.removeMediaItem(index)
+    }
+
+    /** Remove everything after the song that is playing now. */
+    fun clearUpcoming() = withController { c ->
+        val from = c.currentMediaItemIndex + 1
+        if (from < c.mediaItemCount) c.removeMediaItems(from, c.mediaItemCount)
+    }
+
+    // --- Sleep timer --------------------------------------------------------
+
+    fun setSleepMinutes(minutes: Int) {
+        sleepJob?.cancel()
+        val ms = minutes * 60_000L
+        _sleep.value = SleepState(minutes = minutes, endsAtMs = System.currentTimeMillis() + ms)
+        sleepJob = scope.launch {
+            delay(ms)
+            withController { it.pause() }
+            _sleep.value = SleepState()
+        }
+    }
+
+    fun setSleepEndOfSong() {
+        sleepJob?.cancel()
+        _sleep.value = SleepState(endOfSong = true)
+    }
+
+    fun cancelSleep() {
+        sleepJob?.cancel()
+        _sleep.value = SleepState()
     }
 }

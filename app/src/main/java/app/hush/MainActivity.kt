@@ -8,23 +8,24 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.LibraryMusic
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.Icon
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.Brush
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -34,6 +35,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import androidx.compose.animation.core.tween
+import androidx.compose.ui.unit.dp
+import app.hush.ui.Dusk
+import app.hush.ui.FloatingNav
 import app.hush.ui.HomeScreen
 import app.hush.ui.HushTheme
 import app.hush.ui.LibraryScreen
@@ -42,6 +47,7 @@ import app.hush.ui.MiniPlayer
 import app.hush.ui.PlayerScreen
 import app.hush.ui.PlaylistScreen
 import app.hush.ui.SearchScreen
+import app.hush.ui.SettingsScreen
 
 class MainActivity : ComponentActivity() {
 
@@ -64,13 +70,13 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-private data class Tab(val route: String, val label: String, val icon: ImageVector)
+private val TAB_ROUTES = listOf("home", "search", "library")
 
-private val TABS = listOf(
-    Tab("home", "Home", Icons.Filled.Home),
-    Tab("search", "Search", Icons.Filled.Search),
-    Tab("library", "Library", Icons.Filled.LibraryMusic)
-)
+/** Wraps a normal screen so it sits below the status bar. */
+@Composable
+private fun Page(content: @Composable () -> Unit) {
+    Box(Modifier.fillMaxSize().statusBarsPadding()) { content() }
+}
 
 @Composable
 private fun HushRoot(vm: HushVm = viewModel()) {
@@ -78,58 +84,85 @@ private fun HushRoot(vm: HushVm = viewModel()) {
     val entry by nav.currentBackStackEntryAsState()
     val route = entry?.destination?.route
     val inPlayer = route == "player"
-    val onTab = TABS.any { it.route == route }
+    val onTab = route in TAB_ROUTES
     val player by vm.player.state.collectAsState()
+    val accent = MaterialTheme.colorScheme.primary
 
-    Scaffold(
-        bottomBar = {
-            if (!inPlayer) {
-                Column(modifier = if (onTab) Modifier else Modifier.navigationBarsPadding()) {
-                    if (player.mediaId != null) {
-                        MiniPlayer(
-                            state = player,
-                            onToggle = vm.player::toggle,
-                            onOpen = { nav.navigate("player") { launchSingleTop = true } }
-                        )
-                    }
-                    if (onTab) {
-                        NavigationBar {
-                            TABS.forEach { tab ->
-                                NavigationBarItem(
-                                    selected = route == tab.route,
-                                    onClick = {
-                                        nav.navigate(tab.route) {
-                                            popUpTo(nav.graph.findStartDestination().id) { saveState = true }
-                                            launchSingleTop = true
-                                            restoreState = true
-                                        }
-                                    },
-                                    icon = { Icon(tab.icon, contentDescription = null) },
-                                    label = { Text(tab.label) }
-                                )
-                            }
-                        }
-                    }
+    Box(
+        Modifier
+            .fillMaxSize()
+            .background(Dusk.Bg)
+            .background(
+                Brush.radialGradient(
+                    listOf(accent.copy(alpha = 0.16f), androidx.compose.ui.graphics.Color.Transparent),
+                    center = androidx.compose.ui.geometry.Offset(200f, 0f),
+                    radius = 1100f
+                )
+            )
+    ) {
+        NavHost(
+            nav,
+            startDestination = "home",
+            modifier = Modifier.fillMaxSize(),
+            enterTransition = { fadeIn(tween(180)) },
+            exitTransition = { fadeOut(tween(180)) },
+            popEnterTransition = { fadeIn(tween(180)) },
+            popExitTransition = { fadeOut(tween(180)) }
+        ) {
+            composable("home") { Page { HomeScreen(vm, onSettings = { nav.navigate("settings") }) } }
+            composable("search") { Page { SearchScreen(vm) } }
+            composable("library") {
+                Page {
+                    LibraryScreen(
+                        vm,
+                        onOpenLiked = { nav.navigate("liked") },
+                        onOpenPlaylist = { nav.navigate("playlist/$it") }
+                    )
                 }
             }
-        }
-    ) { padding ->
-        NavHost(nav, startDestination = "home", modifier = Modifier.padding(padding)) {
-            composable("home") { HomeScreen(vm) }
-            composable("search") { SearchScreen(vm) }
-            composable("library") {
-                LibraryScreen(
-                    vm,
-                    onOpenLiked = { nav.navigate("liked") },
-                    onOpenPlaylist = { nav.navigate("playlist/$it") }
-                )
-            }
-            composable("liked") { LikedScreen(vm, onBack = { nav.popBackStack() }) }
+            composable("liked") { Page { LikedScreen(vm, onBack = { nav.popBackStack() }) } }
             composable(
                 "playlist/{id}",
                 arguments = listOf(navArgument("id") { type = NavType.LongType })
-            ) { PlaylistScreen(vm, it.arguments?.getLong("id") ?: 0L, onBack = { nav.popBackStack() }) }
-            composable("player") { PlayerScreen(vm, onClose = { nav.popBackStack() }) }
+            ) { Page { PlaylistScreen(vm, it.arguments?.getLong("id") ?: 0L, onBack = { nav.popBackStack() }) } }
+            composable("settings") { Page { SettingsScreen(vm, onBack = { nav.popBackStack() }) } }
+            composable(
+                "player",
+                enterTransition = { slideInVertically(tween(280)) { it } },
+                exitTransition = { fadeOut(tween(180)) },
+                popEnterTransition = { fadeIn(tween(180)) },
+                popExitTransition = { slideOutVertically(tween(280)) { it } }
+            ) { PlayerScreen(vm, onClose = { nav.popBackStack() }) }
+        }
+
+        if (!inPlayer) {
+            Column(
+                Modifier
+                    .align(Alignment.BottomCenter)
+                    .navigationBarsPadding()
+                    .padding(start = 12.dp, end = 12.dp, bottom = 12.dp)
+            ) {
+                if (player.mediaId != null) {
+                    MiniPlayer(
+                        state = player,
+                        onToggle = vm.player::toggle,
+                        onOpen = { nav.navigate("player") { launchSingleTop = true } }
+                    )
+                    Box(Modifier.padding(top = 8.dp))
+                }
+                if (onTab) {
+                    FloatingNav(
+                        current = route,
+                        onSelect = { target ->
+                            nav.navigate(target) {
+                                popUpTo(nav.graph.findStartDestination().id) { saveState = true }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        }
+                    )
+                }
+            }
         }
     }
 }
