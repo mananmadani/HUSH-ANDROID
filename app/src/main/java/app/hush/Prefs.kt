@@ -60,7 +60,7 @@ object Prefs {
         sp.edit().putBoolean("suggestions", enabled).apply()
     }
 
-    fun setLight(value: Boolean) {
+    fun setLightTheme(value: Boolean) {
         light = value
         sp.edit().putBoolean("light", value).apply()
     }

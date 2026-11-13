@@ -60,8 +60,8 @@ fun SettingsScreen(vm: HushVm, onBack: () -> Unit) {
             Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            HushChip("Dark", !Prefs.light) { Prefs.setLight(false) }
-            HushChip("Light", Prefs.light) { Prefs.setLight(true) }
+            HushChip("Dark", !Prefs.light) { Prefs.setLightTheme(false) }
+            HushChip("Light", Prefs.light) { Prefs.setLightTheme(true) }
         }
 
         Section("Accent colour")
