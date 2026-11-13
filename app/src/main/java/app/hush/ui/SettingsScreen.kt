@@ -1,5 +1,6 @@
 package app.hush.ui
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -114,6 +115,43 @@ fun SettingsScreen(vm: HushVm, onBack: () -> Unit) {
         }
         SettingsAction("Clear listening history", "Empties Recently played on Home") { vm.clearHistory() }
         SettingsAction("Clear recent searches", "Removes the list in Search") { vm.clearRecentSearches() }
+
+        Section("Updates")
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(Modifier.weight(1f)) {
+                Text("Check for updates automatically", fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                Text(
+                    "Once a day Hush asks GitHub if a newer version exists. Off by default. Nothing about you is sent.",
+                    fontSize = 12.sp,
+                    color = Dusk.Muted
+                )
+            }
+            Switch(
+                checked = Prefs.autoUpdate,
+                onCheckedChange = { Prefs.enableAutoUpdate(it) },
+                colors = SwitchDefaults.colors(
+                    checkedThumbColor = Dusk.OnAccent,
+                    checkedTrackColor = MaterialTheme.colorScheme.primary
+                ),
+                modifier = Modifier.padding(start = 12.dp)
+            )
+        }
+        SettingsAction(
+            "Check for updates now",
+            if (vm.checkingUpdate) "Checking..." else "Asks GitHub for the newest version"
+        ) {
+            vm.checkForUpdate(manual = true) { Toast.makeText(context, it, Toast.LENGTH_SHORT).show() }
+        }
+        vm.updateAvailable?.let { release ->
+            SettingsAction("Download ${release.tag}", "Opens the download in your browser") {
+                openUrl(context, release.apkUrl ?: release.pageUrl)
+            }
+        }
 
         Section("About")
         Row(

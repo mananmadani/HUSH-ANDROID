@@ -16,6 +16,13 @@ Hush is built to collect nothing.
 - **Search suggestions.** While you type, the partial text is sent to YouTube to get suggestions.
   This is the only time unfinished searches leave your phone. Turn it off in Settings and nothing is
   sent until you press search.
+- **Listening stats.** Hush counts your plays and listening time on the device so it can show your
+  top songs and artists. They are never uploaded and are not included in backups. Reset them any time.
+- **Daily Mix.** The mix is built on the phone. Like the "Because you liked ..." rows, it asks YouTube for
+  songs related to a few of your songs.
+- **Update check.** Off by default. If you switch it on (or tap "Check for updates now"), Hush asks
+  GitHub for the latest release of this project. Nothing about you is sent, but GitHub can see your IP
+  address, as with any website.
 - **Playlist import.** If you import a playlist, the link you paste is opened on YouTube or Spotify
   (Spotify's public embed page, no login), and the song names are searched on YouTube Music. Nothing
   is sent unless you start an import.

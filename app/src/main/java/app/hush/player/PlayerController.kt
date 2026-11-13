@@ -65,7 +65,9 @@ data class SleepState(
 class PlayerController(
     private val context: Context,
     /** Called each time a new track starts, used for the on-device "Recently played" row. */
-    private val onTrackStarted: (SongEntity) -> Unit = {}
+    private val onTrackStarted: (SongEntity) -> Unit = {},
+    /** Called about every 500 ms while music is playing (used for listening time). */
+    private val onTick: (Long) -> Unit = {}
 ) {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
@@ -126,7 +128,10 @@ class PlayerController(
         scope.launch {
             while (true) {
                 delay(500)
-                if (controller?.isPlaying == true) refresh()
+                if (controller?.isPlaying == true) {
+                    refresh()
+                    onTick(500)
+                }
             }
         }
     }

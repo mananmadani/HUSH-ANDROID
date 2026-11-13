@@ -22,6 +22,8 @@ and no account. It does one job and leaves everything else out.
 - **Background playback:** notification and lock-screen controls (Media3).
 - **Library:** liked songs and your own playlists with cover collages, stored on your device,
   plus backup and restore to a file you keep.
+- **Daily Mix and listening stats:** a fresh mix each day and your top songs and artists, all worked out on your phone.
+- **Search inside playlists** and an optional **update check** (off by default).
 - **Artists, albums and playlists:** search them, open their pages, play them or save them to your library.
 - **Import playlists:** bring in a public YouTube or Spotify playlist from its link.
 - **Light and dark themes** with seven accent colours.

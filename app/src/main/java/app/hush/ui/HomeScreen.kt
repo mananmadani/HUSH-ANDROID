@@ -28,9 +28,11 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
@@ -81,6 +83,9 @@ fun HomeScreen(
     val playlists by vm.playlists.collectAsState()
     val liked by vm.liked.collectAsState()
     val thumbs by vm.playlistThumbs.collectAsState()
+    val context = LocalContext.current
+    val update = vm.updateAvailable
+    var updateHidden by remember { mutableStateOf(false) }
     var pickFor by remember { mutableStateOf<SongEntity?>(null) }
 
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 190.dp)) {
@@ -103,6 +108,16 @@ fun HomeScreen(
                 RoundIconButton(Icons.Filled.Refresh, "Refresh", vm::loadHome)
                 Box(Modifier.width(8.dp))
                 RoundIconButton(Icons.Filled.Settings, "Settings", onSettings)
+            }
+        }
+
+        if (update != null && !updateHidden && Prefs.dismissedTag() != update.tag) {
+            item {
+                UpdateBanner(
+                    tag = update.tag,
+                    onDownload = { openUrl(context, update.apkUrl ?: update.pageUrl) },
+                    onDismiss = { Prefs.dismissTag(update.tag); updateHidden = true }
+                )
             }
         }
 
@@ -157,6 +172,13 @@ fun HomeScreen(
                 item {
                     Box(Modifier.padding(top = 20.dp)) {
                         HeroCard(hero) { vm.player.play(trending.songs, 0) }
+                    }
+                }
+            }
+            if (vm.dailyMix.isNotEmpty()) {
+                item {
+                    Box(Modifier.padding(top = 16.dp)) {
+                        DailyMixCard(vm.dailyMix.size) { vm.player.play(vm.dailyMix, 0) }
                     }
                 }
             }
@@ -336,5 +358,59 @@ private fun ShelfRow(title: String, songs: List<SongEntity>, vm: HushVm) {
                 Text(song.artist, maxLines = 1, overflow = TextOverflow.Ellipsis, fontSize = 12.sp, color = Dusk.Muted)
             }
         }
+    }
+}
+
+@Composable
+private fun DailyMixCard(count: Int, onPlay: () -> Unit) {
+    Row(
+        Modifier
+            .padding(horizontal = 20.dp)
+            .fillMaxWidth()
+            .height(92.dp)
+            .clip(RoundedCornerShape(26.dp))
+            .background(Brush.linearGradient(listOf(Color(0xFF3B2A6B), Color(0xFFE26A8D))))
+            .clickable(onClick = onPlay)
+            .padding(horizontal = 22.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text("Daily Mix", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.White)
+            Text(
+                "$count songs · made on your phone",
+                fontSize = 12.sp,
+                color = Color(0xE6FFFFFF)
+            )
+        }
+        Box(
+            Modifier
+                .size(46.dp)
+                .clip(CircleShape)
+                .background(Color(0x33FFFFFF)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(Icons.Filled.PlayArrow, "Play Daily Mix", tint = Color.White)
+        }
+    }
+}
+
+@Composable
+private fun UpdateBanner(tag: String, onDownload: () -> Unit, onDismiss: () -> Unit) {
+    val accent = MaterialTheme.colorScheme.primary
+    Row(
+        Modifier
+            .padding(horizontal = 20.dp, vertical = 6.dp)
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(20.dp))
+            .background(accent.copy(alpha = 0.16f))
+            .padding(start = 18.dp, top = 4.dp, bottom = 4.dp, end = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text("Update available", fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+            Text("Hush $tag is ready", fontSize = 12.sp, color = Dusk.Muted)
+        }
+        TextButton(onClick = onDownload) { Text("Download") }
+        TextButton(onClick = onDismiss) { Text("Later", color = Dusk.Muted) }
     }
 }

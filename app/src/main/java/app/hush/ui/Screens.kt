@@ -31,6 +31,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Download
@@ -304,7 +305,12 @@ private fun RowScope.MoodTile(mood: Mood, onClick: () -> Unit) {
 // --- Library ------------------------------------------------------------------
 
 @Composable
-fun LibraryScreen(vm: HushVm, onOpenLiked: () -> Unit, onOpenPlaylist: (Long) -> Unit) {
+fun LibraryScreen(
+    vm: HushVm,
+    onOpenLiked: () -> Unit,
+    onOpenPlaylist: (Long) -> Unit,
+    onOpenStats: () -> Unit
+) {
     val context = LocalContext.current
     val liked by vm.liked.collectAsState()
     val playlists by vm.playlists.collectAsState()
@@ -398,7 +404,10 @@ fun LibraryScreen(vm: HushVm, onOpenLiked: () -> Unit, onOpenPlaylist: (Long) ->
                 if (pair.size == 1) Box(Modifier.weight(1f))
             }
         }
-        item { SectionTitle("Import and backup", Modifier.padding(start = 20.dp, top = 26.dp, bottom = 4.dp)) }
+        item { SectionTitle("More", Modifier.padding(start = 20.dp, top = 26.dp, bottom = 4.dp)) }
+        item {
+            ActionRow(Icons.Filled.BarChart, "Listening stats", "Your top songs and artists, kept on this phone", onOpenStats)
+        }
         item {
             ActionRow(Icons.Filled.Link, "Import a playlist", "From a YouTube or Spotify link") {
                 importing = true
@@ -569,6 +578,14 @@ private fun SongListPage(
     extraAction: Pair<String, (SongEntity) -> Unit>,
     onDelete: (() -> Unit)?
 ) {
+    var searching by remember { mutableStateOf(false) }
+    var query by remember { mutableStateOf("") }
+    val q = query.trim()
+    val shown = if (q.isEmpty()) songs else songs.filter {
+        it.title.contains(q, ignoreCase = true) || it.artist.contains(q, ignoreCase = true)
+    }
+    val accent = MaterialTheme.colorScheme.primary
+
     Column(Modifier.fillMaxSize()) {
         Row(
             Modifier.padding(start = 12.dp, end = 12.dp, top = 12.dp),
@@ -584,13 +601,43 @@ private fun SongListPage(
                     .weight(1f)
                     .padding(horizontal = 14.dp)
             )
-            if (onDelete != null) RoundIconButton(Icons.Filled.Delete, "Delete playlist", onDelete)
+            if (songs.isNotEmpty()) {
+                RoundIconButton(
+                    icon = if (searching) Icons.Filled.Close else Icons.Filled.Search,
+                    description = "Search in this list",
+                    onClick = { searching = !searching; if (!searching) query = "" }
+                )
+            }
+            if (onDelete != null) {
+                Box(Modifier.width(8.dp))
+                RoundIconButton(icon = Icons.Filled.Delete, description = "Delete playlist", onClick = onDelete)
+            }
         }
-        if (songs.isEmpty()) {
-            CenterMessage("Nothing here yet.")
-        } else {
-            SongList(
-                songs = songs,
+        if (searching) {
+            OutlinedTextField(
+                value = query,
+                onValueChange = { query = it },
+                singleLine = true,
+                shape = RoundedCornerShape(26.dp),
+                placeholder = { Text("Search in $title", color = Dusk.Muted) },
+                leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null, tint = Dusk.Muted) },
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = accent,
+                    unfocusedBorderColor = Dusk.Line,
+                    focusedContainerColor = Dusk.Raised,
+                    unfocusedContainerColor = Dusk.Raised,
+                    cursorColor = accent
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 12.dp)
+            )
+        }
+        when {
+            songs.isEmpty() -> CenterMessage("Nothing here yet.")
+            shown.isEmpty() -> CenterMessage("No songs match \"$q\".")
+            else -> SongList(
+                songs = shown,
                 vm = vm,
                 modifier = Modifier.fillMaxSize(),
                 extraAction = extraAction,
@@ -600,11 +647,11 @@ private fun SongListPage(
                             Modifier.padding(horizontal = 20.dp, vertical = 14.dp),
                             horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            Button(onClick = { vm.player.play(songs, 0) }) {
+                            Button(onClick = { vm.player.play(shown, 0) }) {
                                 Icon(Icons.Filled.PlayArrow, null)
                                 Text("Play", modifier = Modifier.padding(start = 6.dp))
                             }
-                            OutlinedButton(onClick = { vm.player.play(songs, 0, shuffle = true) }) {
+                            OutlinedButton(onClick = { vm.player.play(shown, 0, shuffle = true) }) {
                                 Icon(Icons.Filled.Shuffle, null)
                                 Text("Shuffle", modifier = Modifier.padding(start = 6.dp))
                             }

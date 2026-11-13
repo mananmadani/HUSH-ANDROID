@@ -11,6 +11,7 @@ import app.hush.data.SongEntity
 import app.hush.net.ArtistItem
 import app.hush.net.CollectionItem
 import app.hush.net.Spotify
+import app.hush.net.Updater
 import app.hush.net.YtMusic
 import java.io.IOException
 import kotlinx.coroutines.CancellationException
@@ -71,6 +72,14 @@ class HushVm(app: Application) : AndroidViewModel(app) {
     var moodLoading by mutableStateOf(false); private set
     private var moodJob: Job? = null
 
+    // Daily Mix (built on the phone from your likes and plays)
+    var dailyMix by mutableStateOf<List<SongEntity>>(emptyList()); private set
+    private var mixJob: Job? = null
+
+    // App updates
+    var updateAvailable by mutableStateOf<Updater.Release?>(null); private set
+    var checkingUpdate by mutableStateOf(false); private set
+
     // Search
     var query by mutableStateOf("")
         private set
@@ -87,6 +96,72 @@ class HushVm(app: Application) : AndroidViewModel(app) {
 
     init {
         loadHome()
+        if (Prefs.autoUpdate && System.currentTimeMillis() - Prefs.lastCheckAt() > 24L * 60 * 60 * 1000) {
+            checkForUpdate(manual = false)
+        }
+    }
+
+    // --- Updates -------------------------------------------------------------------------
+
+    private fun currentVersion(): String = runCatching {
+        val app = getApplication<Application>()
+        app.packageManager.getPackageInfo(app.packageName, 0).versionName
+    }.getOrNull().orEmpty()
+
+    /** Ask GitHub for the newest release. [done] is only called for a manual check. */
+    fun checkForUpdate(manual: Boolean, done: (String) -> Unit = {}) {
+        if (checkingUpdate) return
+        viewModelScope.launch {
+            checkingUpdate = true
+            val message = try {
+                val release = Updater.latest()
+                Prefs.markChecked()
+                val current = currentVersion()
+                if (Updater.isNewer(release.tag, current)) {
+                    updateAvailable = release
+                    "Update available: ${release.tag}"
+                } else {
+                    updateAvailable = null
+                    "You're up to date (v$current)"
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                "Couldn't check for updates"
+            }
+            checkingUpdate = false
+            if (manual) done(message)
+        }
+    }
+
+    // --- Daily Mix -----------------------------------------------------------------------
+
+    /**
+     * A mix that stays the same for the whole day: a few songs you love, plus new songs related to
+     * a handful of them. Only the related-songs lookups touch the network.
+     */
+    private fun buildDailyMix(liked: List<SongEntity>, recent: List<SongEntity>) {
+        mixJob?.cancel()
+        val pool = (liked + recent).distinctBy { it.url }
+        if (pool.isEmpty()) {
+            dailyMix = emptyList()
+            return
+        }
+        mixJob = viewModelScope.launch {
+            val rnd = kotlin.random.Random(System.currentTimeMillis() / 86_400_000L)
+            val seeds = pool.shuffled(rnd).take(4)
+            val related = coroutineScope {
+                seeds.map { s ->
+                    async { runCatching { YtMusic.related(s.url) }.getOrDefault(emptyList()) }
+                }.awaitAll()
+            }
+            val knownUrls = pool.map { it.url }.toSet()
+            val fresh = related.flatten().filter { it.url !in knownUrls }.distinctBy { it.url }
+            val familiar = pool.shuffled(rnd).take(8)
+            val mix = (fresh.shuffled(rnd).take(22) + familiar).distinctBy { it.url }.shuffled(rnd)
+            ensureActive()
+            dailyMix = mix
+        }
     }
 
     // --- Home ----------------------------------------------------------------------------
@@ -105,6 +180,8 @@ class HushVm(app: Application) : AndroidViewModel(app) {
             val likedSongs = runCatching { repo.liked().first() }.getOrDefault(emptyList())
             val likedUrls = likedSongs.map { it.url }.toSet()
             val picks = likedSongs.shuffled().take(2)
+            val recentSongs = runCatching { repo.recent().first() }.getOrDefault(emptyList())
+            buildDailyMix(likedSongs, recentSongs)
 
             val sources = buildList {
                 picks.forEach { song ->

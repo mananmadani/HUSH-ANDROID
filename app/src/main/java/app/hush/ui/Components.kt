@@ -163,6 +163,14 @@ fun Art(
     }
 }
 
+fun openUrl(context: Context, url: String) {
+    runCatching {
+        context.startActivity(
+            Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        )
+    }
+}
+
 fun shareSong(context: Context, title: String, artist: String, url: String) {
     val text = buildString {
         append(title)

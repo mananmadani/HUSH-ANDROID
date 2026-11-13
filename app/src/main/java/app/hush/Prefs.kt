@@ -31,6 +31,8 @@ object Prefs {
         private set
     var light by mutableStateOf(false)
         private set
+    var autoUpdate by mutableStateOf(false)
+        private set
 
     private val current: Accent
         get() = ACCENTS[accentIndex.coerceIn(0, ACCENTS.lastIndex)]
@@ -48,6 +50,7 @@ object Prefs {
         accentIndex = sp.getInt("accent", 0)
         suggestionsEnabled = sp.getBoolean("suggestions", true)
         light = sp.getBoolean("light", false)
+        autoUpdate = sp.getBoolean("auto_update", false)
     }
 
     fun setAccent(index: Int) {
@@ -63,6 +66,23 @@ object Prefs {
     fun setLightTheme(value: Boolean) {
         light = value
         sp.edit().putBoolean("light", value).apply()
+    }
+
+    fun enableAutoUpdate(enabled: Boolean) {
+        autoUpdate = enabled
+        sp.edit().putBoolean("auto_update", enabled).apply()
+    }
+
+    fun lastCheckAt(): Long = sp.getLong("last_update_check", 0L)
+
+    fun markChecked() {
+        sp.edit().putLong("last_update_check", System.currentTimeMillis()).apply()
+    }
+
+    fun dismissedTag(): String = sp.getString("dismissed_update", "") ?: ""
+
+    fun dismissTag(tag: String) {
+        sp.edit().putString("dismissed_update", tag).apply()
     }
 
     fun loadRecentSearches(): List<String> =

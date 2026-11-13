@@ -26,6 +26,7 @@ class HushApp : Application() {
     override fun onCreate() {
         super.onCreate()
         Prefs.init(this)
+        Stats.init(this)
 
         // Ask YouTube Music in the phone's own language and country.
         NewPipe.init(
@@ -37,9 +38,16 @@ class HushApp : Application() {
         repo = Repo(HushDb.create(this).dao())
 
         val io = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-        player = PlayerController(this) { song ->
-            io.launch { repo.recordPlay(song) }
-        }
+        player = PlayerController(
+            this,
+            onTrackStarted = { song ->
+                io.launch {
+                    repo.recordPlay(song)
+                    Stats.recordPlay(song)
+                }
+            },
+            onTick = { Stats.tick(it) }
+        )
 
         // Keep the home-screen widgets in step with what is playing.
         io.launch {

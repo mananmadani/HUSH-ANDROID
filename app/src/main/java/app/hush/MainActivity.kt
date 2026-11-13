@@ -60,6 +60,7 @@ import app.hush.ui.PlayerScreen
 import app.hush.ui.PlaylistScreen
 import app.hush.ui.SearchScreen
 import app.hush.ui.SettingsScreen
+import app.hush.ui.StatsScreen
 
 class MainActivity : ComponentActivity() {
 
@@ -169,10 +170,12 @@ private fun HushRoot(vm: HushVm = viewModel()) {
                     LibraryScreen(
                         vm,
                         onOpenLiked = { nav.navigate("liked") },
-                        onOpenPlaylist = { nav.navigate("playlist/$it") }
+                        onOpenPlaylist = { nav.navigate("playlist/$it") },
+                        onOpenStats = { nav.navigate("stats") }
                     )
                 }
             }
+            composable("stats") { Page { StatsScreen(vm, onBack = { nav.popBackStack() }) } }
             composable("liked") { Page { LikedScreen(vm, onBack = { nav.popBackStack() }) } }
             composable(
                 "playlist/{id}",

@@ -6,6 +6,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+## [1.0.8]
+
+### Added
+- Daily Mix on Home: a mix for the day built on your phone from your likes and what you played.
+- Listening stats (Library > Listening stats): time listened, top songs and top artists, this month or all time. Stored only on your phone.
+- Update check: switch it on in Settings, or tap "Check for updates now". Hush asks GitHub for the newest release and shows a banner on Home when there is one.
+- Search inside Liked songs and inside any playlist.
+
 ## [1.0.7]
 
 ### Added

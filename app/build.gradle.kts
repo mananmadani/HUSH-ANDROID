@@ -12,8 +12,8 @@ android {
         applicationId = "app.hush"
         minSdk = 26 // NewPipeExtractor needs Java 8 time APIs; API 26+ has them natively
         targetSdk = 34
-        versionCode = 7
-        versionName = "1.0.7"
+        versionCode = 8
+        versionName = "1.0.8"
     }
 
     // Release signing is read from the environment (used by the GitHub release workflow).
