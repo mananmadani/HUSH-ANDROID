@@ -3,7 +3,11 @@ package app.hush
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
+import android.graphics.Color
 import android.os.Bundle
+import android.util.Base64
+import androidx.activity.SystemBarStyle
+import androidx.compose.runtime.DisposableEffect
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -23,6 +27,7 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -39,7 +44,12 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.compose.animation.core.tween
 import androidx.compose.ui.unit.dp
+import app.hush.net.CollectionItem
+import app.hush.ui.ArtistScreen
+import app.hush.ui.CollectionScreen
 import app.hush.ui.Dusk
+import app.hush.ui.LocalOpenArtist
+import app.hush.ui.LocalOpenCollection
 import app.hush.ui.FloatingNav
 import app.hush.ui.HomeScreen
 import app.hush.ui.HushTheme
@@ -69,6 +79,17 @@ class MainActivity : ComponentActivity() {
         }
 
         setContent {
+            // Keep the status and navigation bar icons readable in both themes.
+            val light = Prefs.light
+            DisposableEffect(light) {
+                enableEdgeToEdge(
+                    statusBarStyle = if (light) SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT)
+                    else SystemBarStyle.dark(Color.TRANSPARENT),
+                    navigationBarStyle = if (light) SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT)
+                    else SystemBarStyle.dark(Color.TRANSPARENT)
+                )
+                onDispose { }
+            }
             HushTheme {
                 // Without this, plain Text falls back to black on our dark background.
                 CompositionLocalProvider(LocalContentColor provides Dusk.Text) { HushRoot() }
@@ -76,6 +97,12 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+
+private fun enc(s: String): String =
+    Base64.encodeToString(s.toByteArray(), Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING)
+
+private fun dec(s: String): String =
+    String(Base64.decode(s, Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING))
 
 private val TAB_ROUTES = listOf("home", "search", "library")
 
@@ -107,6 +134,16 @@ private fun HushRoot(vm: HushVm = viewModel()) {
                 )
             )
     ) {
+        CompositionLocalProvider(
+            LocalOpenArtist provides { name: String ->
+                if (route == "player") nav.popBackStack()
+                nav.navigate("artist/${enc(name)}")
+            },
+            LocalOpenCollection provides { c: CollectionItem ->
+                if (route == "player") nav.popBackStack()
+                nav.navigate("collection/${enc(listOf(c.url, c.title, c.thumb.orEmpty(), c.subtitle, c.count.toString()).joinToString("\n"))}")
+            }
+        ) {
         NavHost(
             nav,
             startDestination = "home",
@@ -141,6 +178,27 @@ private fun HushRoot(vm: HushVm = viewModel()) {
                 "playlist/{id}",
                 arguments = listOf(navArgument("id") { type = NavType.LongType })
             ) { Page { PlaylistScreen(vm, it.arguments?.getLong("id") ?: 0L, onBack = { nav.popBackStack() }) } }
+            composable(
+                "artist/{k}",
+                arguments = listOf(navArgument("k") { type = NavType.StringType })
+            ) {
+                val name = it.arguments?.getString("k")?.let(::dec).orEmpty()
+                Page { ArtistScreen(vm, name, onBack = { nav.popBackStack() }) }
+            }
+            composable(
+                "collection/{k}",
+                arguments = listOf(navArgument("k") { type = NavType.StringType })
+            ) {
+                val parts = it.arguments?.getString("k")?.let(::dec).orEmpty().split("\n")
+                val item = CollectionItem(
+                    url = parts.getOrElse(0) { "" },
+                    title = parts.getOrElse(1) { "" },
+                    thumb = parts.getOrElse(2) { "" }.ifBlank { null },
+                    subtitle = parts.getOrElse(3) { "" },
+                    count = parts.getOrElse(4) { "0" }.toLongOrNull() ?: 0L
+                )
+                Page { CollectionScreen(vm, item, onBack = { nav.popBackStack() }) }
+            }
             composable("settings") { Page { SettingsScreen(vm, onBack = { nav.popBackStack() }) } }
             composable(
                 "player",
@@ -149,6 +207,7 @@ private fun HushRoot(vm: HushVm = viewModel()) {
                 popEnterTransition = { fadeIn(tween(180)) },
                 popExitTransition = { slideOutVertically(tween(280)) { it } }
             ) { PlayerScreen(vm, onClose = { nav.popBackStack() }) }
+        }
         }
 
         if (!inPlayer) {

@@ -16,6 +16,9 @@ Hush is built to collect nothing.
 - **Search suggestions.** While you type, the partial text is sent to YouTube to get suggestions.
   This is the only time unfinished searches leave your phone. Turn it off in Settings and nothing is
   sent until you press search.
+- **Playlist import.** If you import a playlist, the link you paste is opened on YouTube or Spotify
+  (Spotify's public embed page, no login), and the song names are searched on YouTube Music. Nothing
+  is sent unless you start an import.
 - **Widgets.** Home-screen widgets show the song that is playing. They get it from the app on your
   phone and contact nothing.
 - **Backup file.** "Back up library" writes your likes and playlists to a file you choose. Hush never

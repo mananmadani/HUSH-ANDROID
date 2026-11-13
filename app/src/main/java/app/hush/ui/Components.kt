@@ -8,6 +8,7 @@ import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
 import androidx.compose.foundation.layout.heightIn
 import android.widget.Toast
 import android.content.Intent
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -51,6 +52,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.staticCompositionLocalOf
+import app.hush.net.CollectionItem
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -66,10 +69,43 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.hush.HushVm
+import app.hush.Prefs
 import app.hush.data.PlaylistInfo
 import app.hush.data.SongEntity
 import app.hush.player.PlayerState
 import coil.compose.AsyncImage
+
+/** Opens an artist page. Provided by MainActivity. */
+val LocalOpenArtist = staticCompositionLocalOf<(String) -> Unit> { {} }
+
+/** Opens an album or playlist page. Provided by MainActivity. */
+val LocalOpenCollection = staticCompositionLocalOf<(CollectionItem) -> Unit> { {} }
+
+/** The Hush logo (the same three sound bars as the app icon), drawn in code so it stays sharp. */
+@Composable
+fun HushLogo(size: Dp, modifier: Modifier = Modifier) {
+    val bars = Prefs.accentDark
+    Canvas(modifier.size(size)) {
+        val s = this.size.minDimension
+        drawRoundRect(
+            color = Color(0xFF14141A),
+            size = androidx.compose.ui.geometry.Size(s, s),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(s * 0.28f)
+        )
+        val k = s / 52f
+        fun bar(x: Float, top: Float, bottom: Float) {
+            drawRoundRect(
+                color = bars,
+                topLeft = androidx.compose.ui.geometry.Offset(s / 2 + (x - 54f) * k, s / 2 + (top - 54f) * k),
+                size = androidx.compose.ui.geometry.Size(8f * k, (bottom - top) * k),
+                cornerRadius = androidx.compose.ui.geometry.CornerRadius(1.5f * k)
+            )
+        }
+        bar(36f, 48f, 60f)
+        bar(50f, 38f, 70f)
+        bar(64f, 46f, 62f)
+    }
+}
 
 fun formatTime(ms: Long): String {
     val total = (ms / 1000).coerceAtLeast(0)
@@ -296,6 +332,7 @@ fun SongList(
     header: (LazyListScope.() -> Unit)? = null
 ) {
     val context = LocalContext.current
+    val openArtist = LocalOpenArtist.current
     val playlists by vm.playlists.collectAsState()
     var pickFor by remember { mutableStateOf<SongEntity?>(null) }
 
@@ -306,6 +343,7 @@ fun SongList(
                 add("Play next" to { vm.player.playNext(song) })
                 add("Add to queue" to { vm.player.addToQueue(song) })
                 add("Add to playlist" to { pickFor = song })
+                if (song.artist.isNotBlank()) add("Go to artist" to { openArtist(song.artist) })
                 add("Share" to { shareSong(context, song.title, song.artist, song.url) })
                 extraAction?.let { (label, run) -> add(label to { run(song) }) }
             }
@@ -469,7 +507,7 @@ fun MiniPlayer(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     fontSize = 12.sp,
-                    color = Color(0xFFD2CEDF)
+                    color = Dusk.Muted
                 )
             }
             if (state.loading && !state.playing) {
@@ -480,7 +518,7 @@ fun MiniPlayer(
                 Modifier
                     .size(44.dp)
                     .clip(CircleShape)
-                    .background(Color(0x24FFFFFF))
+                    .background(Dusk.Text.copy(alpha = 0.12f))
                     .clickable(onClickLabel = if (state.playing) "Pause" else "Play", onClick = onToggle),
                 contentAlignment = Alignment.Center
             ) {
@@ -498,7 +536,7 @@ fun MiniPlayer(
                 .fillMaxWidth()
                 .height(3.dp),
             color = accent,
-            trackColor = Color(0x24FFFFFF)
+            trackColor = Dusk.Text.copy(alpha = 0.12f)
         )
     }
 }
@@ -521,7 +559,7 @@ fun FloatingNav(current: String?, onSelect: (String) -> Unit, modifier: Modifier
             .fillMaxWidth()
             .height(64.dp)
             .clip(shape)
-            .background(Color(0xEB1C1C27))
+            .background(Dusk.Raised.copy(alpha = 0.94f))
             .border(1.dp, Dusk.Line, shape)
             .padding(horizontal = 8.dp),
         horizontalArrangement = Arrangement.SpaceAround,

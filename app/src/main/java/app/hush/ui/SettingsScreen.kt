@@ -55,23 +55,34 @@ fun SettingsScreen(vm: HushVm, onBack: () -> Unit) {
             Text("Settings", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(start = 14.dp))
         }
 
-        Section("Accent colour")
+        Section("Theme")
         Row(
             Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            Prefs.ACCENTS.forEachIndexed { i, (name, color) ->
-                val selected = i == Prefs.accentIndex
-                Box(
-                    Modifier
-                        .size(52.dp)
-                        .clip(CircleShape)
-                        .background(color)
-                        .then(if (selected) Modifier.border(3.dp, Dusk.Text, CircleShape) else Modifier)
-                        .clickable(onClickLabel = name) { Prefs.setAccent(i) },
-                    contentAlignment = Alignment.Center
-                ) {
-                    if (selected) Icon(Icons.Filled.Check, name, tint = Dusk.OnAccent)
+            HushChip("Dark", !Prefs.light) { Prefs.setLight(false) }
+            HushChip("Light", Prefs.light) { Prefs.setLight(true) }
+        }
+
+        Section("Accent colour")
+        Prefs.ACCENTS.withIndex().chunked(4).forEach { rowItems ->
+            Row(
+                Modifier.padding(horizontal = 20.dp, vertical = 6.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                rowItems.forEach { (i, accent) ->
+                    val selected = i == Prefs.accentIndex
+                    Box(
+                        Modifier
+                            .size(52.dp)
+                            .clip(CircleShape)
+                            .background(if (Prefs.light) accent.light else accent.dark)
+                            .then(if (selected) Modifier.border(3.dp, Dusk.Text, CircleShape) else Modifier)
+                            .clickable(onClickLabel = accent.name) { Prefs.setAccent(i) },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (selected) Icon(Icons.Filled.Check, accent.name, tint = Dusk.OnAccent)
+                    }
                 }
             }
         }
@@ -105,6 +116,13 @@ fun SettingsScreen(vm: HushVm, onBack: () -> Unit) {
         SettingsAction("Clear recent searches", "Removes the list in Search") { vm.clearRecentSearches() }
 
         Section("About")
+        Row(
+            Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            HushLogo(44.dp)
+            Text("Hush", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(start = 12.dp))
+        }
         Text(
             "Hush $version\nAn unofficial, ad-free, tracker-free music player. Not affiliated with YouTube or Google. " +
                 "Free software under the GPL-3.0 licence, built on NewPipeExtractor. Typeface: Inter (SIL OFL).",

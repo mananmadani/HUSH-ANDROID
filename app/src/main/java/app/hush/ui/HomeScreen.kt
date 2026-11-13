@@ -46,6 +46,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.hush.HushVm
+import app.hush.Prefs
 import app.hush.Moods
 import app.hush.Region
 import app.hush.data.SongEntity
@@ -90,7 +91,8 @@ fun HomeScreen(
                     .padding(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column(Modifier.weight(1f)) {
+                HushLogo(46.dp)
+                Column(Modifier.weight(1f).padding(start = 12.dp)) {
                     Text(greeting(), fontSize = 13.sp, color = Dusk.Muted)
                     Text("Hush", style = MaterialTheme.typography.headlineMedium)
                 }
@@ -234,7 +236,7 @@ fun HomeScreen(
 
 @Composable
 private fun HeroCard(song: SongEntity, onPlay: () -> Unit) {
-    val accent = MaterialTheme.colorScheme.primary
+    val accent = Prefs.accentDark
     Box(
         Modifier
             .padding(horizontal = 20.dp)
@@ -264,11 +266,12 @@ private fun HeroCard(song: SongEntity, onPlay: () -> Unit) {
             Text(
                 song.title,
                 style = MaterialTheme.typography.titleLarge,
+                color = Color.White,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.padding(top = 4.dp)
             )
-            Text(song.artist, fontSize = 13.sp, color = Dusk.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(song.artist, fontSize = 13.sp, color = Color(0xFFD2CEDF), maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
         Box(
             Modifier
@@ -279,7 +282,7 @@ private fun HeroCard(song: SongEntity, onPlay: () -> Unit) {
                 .background(accent),
             contentAlignment = Alignment.Center
         ) {
-            Icon(Icons.Filled.PlayArrow, "Play", tint = Dusk.OnAccent, modifier = Modifier.size(28.dp))
+            Icon(Icons.Filled.PlayArrow, "Play", tint = Color(0xFF1B1240), modifier = Modifier.size(28.dp))
         }
     }
 }

@@ -8,7 +8,14 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import app.hush.data.SongEntity
+import app.hush.net.ArtistItem
+import app.hush.net.CollectionItem
+import app.hush.net.Spotify
 import app.hush.net.YtMusic
+import java.io.IOException
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
@@ -20,6 +27,10 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+
+enum class SearchKind(val label: String) {
+    Songs("Songs"), Artists("Artists"), Albums("Albums"), Playlists("Playlists")
+}
 
 data class Shelf(val title: String, val songs: List<SongEntity>)
 
@@ -67,6 +78,9 @@ class HushVm(app: Application) : AndroidViewModel(app) {
     var searching by mutableStateOf(false); private set
     var searchError by mutableStateOf<String?>(null); private set
     var searched by mutableStateOf(false); private set
+    var searchKind by mutableStateOf(SearchKind.Songs); private set
+    var artistResults by mutableStateOf<List<ArtistItem>>(emptyList()); private set
+    var collectionResults by mutableStateOf<List<CollectionItem>>(emptyList()); private set
     var suggestions by mutableStateOf<List<String>>(emptyList()); private set
     var recentSearches by mutableStateOf(Prefs.loadRecentSearches()); private set
     private var suggestJob: Job? = null
@@ -169,7 +183,12 @@ class HushVm(app: Application) : AndroidViewModel(app) {
             searching = true
             searchError = null
             try {
-                results = YtMusic.search(q)
+                when (searchKind) {
+                    SearchKind.Songs -> results = YtMusic.search(q)
+                    SearchKind.Artists -> artistResults = YtMusic.searchArtists(q)
+                    SearchKind.Albums -> collectionResults = YtMusic.searchCollections(q, albums = true)
+                    SearchKind.Playlists -> collectionResults = YtMusic.searchCollections(q, albums = false)
+                }
                 searched = true
             } catch (e: Exception) {
                 searchError = "Search failed. Check your connection and try again."
@@ -177,6 +196,15 @@ class HushVm(app: Application) : AndroidViewModel(app) {
                 searching = false
             }
         }
+    }
+
+    /** Switch between Songs / Artists / Albums / Playlists; re-runs the search if there is one. */
+    fun selectKind(kind: SearchKind) {
+        if (kind == searchKind) return
+        searchKind = kind
+        searched = false
+        searchError = null
+        if (query.isNotBlank()) search(remember = false)
     }
 
     /** Search for [text] (a tapped suggestion or recent search). */
@@ -188,6 +216,7 @@ class HushVm(app: Application) : AndroidViewModel(app) {
     /** Search for a mood tile; not added to recent searches. */
     fun searchMood(m: Mood) {
         query = m.query
+        searchKind = SearchKind.Songs
         search(remember = false)
     }
 
@@ -197,6 +226,8 @@ class HushVm(app: Application) : AndroidViewModel(app) {
         suggestions = emptyList()
         searched = false
         results = emptyList()
+        artistResults = emptyList()
+        collectionResults = emptyList()
         searchError = null
     }
 
@@ -243,6 +274,73 @@ class HushVm(app: Application) : AndroidViewModel(app) {
 
     fun clearHistory() {
         viewModelScope.launch { repo.clearHistory() }
+    }
+
+    // --- Import and save -----------------------------------------------------------------
+
+    /** Progress text while an import runs, null when idle. */
+    var importStatus by mutableStateOf<String?>(null); private set
+
+    /** Import a YouTube, YouTube Music or (public) Spotify playlist link as a local playlist. */
+    fun importPlaylist(link: String, done: (String) -> Unit) {
+        if (importStatus != null) return
+        viewModelScope.launch {
+            importStatus = "Reading the link..."
+            val message = try {
+                withContext(Dispatchers.IO) { runImport(link.trim()) }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                e.message?.takeIf { it.isNotBlank() } ?: "Couldn't import that link"
+            }
+            importStatus = null
+            done(message)
+        }
+    }
+
+    private suspend fun runImport(link: String): String {
+        val lower = link.lowercase()
+        val name: String
+        val songs: List<SongEntity>
+        if ("spotify" in lower) {
+            val sp = Spotify.read(link)
+            name = sp.name
+            val found = ArrayList<SongEntity>()
+            var checked = 0
+            for (chunk in sp.tracks.chunked(5)) {
+                val part = coroutineScope {
+                    chunk.map { t ->
+                        async { runCatching { YtMusic.search("${t.title} ${t.artist}").firstOrNull() }.getOrNull() }
+                    }.awaitAll()
+                }
+                found.addAll(part.filterNotNull())
+                checked += chunk.size
+                importStatus = "Matching songs $checked/${sp.tracks.size}"
+            }
+            songs = found
+        } else if ("youtu" in lower) {
+            importStatus = "Loading playlist..."
+            val list = try {
+                YtMusic.collection(link)
+            } catch (e: Exception) {
+                throw IOException("Couldn't read that playlist. Use a public playlist link.")
+            }
+            name = list.title
+            songs = list.songs
+        } else {
+            throw IOException("Paste a YouTube, YouTube Music or Spotify playlist link")
+        }
+        if (songs.isEmpty()) throw IOException("No songs could be imported from that link")
+        repo.createPlaylistWithSongs(name, songs)
+        return "Imported \"$name\" (${songs.size} songs)"
+    }
+
+    /** Save an online album or playlist as a local playlist. */
+    fun saveCollection(title: String, songs: List<SongEntity>, done: (String) -> Unit) {
+        viewModelScope.launch {
+            repo.createPlaylistWithSongs(title, songs)
+            done("Saved \"$title\" to your playlists")
+        }
     }
 
     // --- Backup and restore --------------------------------------------------------------

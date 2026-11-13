@@ -33,6 +33,17 @@ class Repo(private val dao: HushDao) {
     suspend fun createPlaylist(name: String): Long =
         dao.insertPlaylist(PlaylistEntity(name = name.trim().ifEmpty { "New playlist" }))
 
+    /** Creates a playlist holding [songs] in the given order. */
+    suspend fun createPlaylistWithSongs(name: String, songs: List<SongEntity>): Long {
+        val id = createPlaylist(name)
+        val base = System.currentTimeMillis()
+        songs.forEachIndexed { i, song ->
+            dao.upsertSong(song)
+            dao.addToPlaylist(PlaylistItemEntity(id, song.url, base + i))
+        }
+        return id
+    }
+
     suspend fun deletePlaylist(id: Long) {
         dao.clearPlaylist(id)
         dao.deletePlaylist(id)

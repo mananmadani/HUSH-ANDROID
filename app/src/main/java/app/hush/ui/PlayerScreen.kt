@@ -62,6 +62,7 @@ import androidx.compose.ui.unit.sp
 import androidx.media3.common.Player
 import androidx.palette.graphics.Palette
 import app.hush.HushVm
+import app.hush.Prefs
 import coil.imageLoader
 import coil.request.ImageRequest
 import coil.request.SuccessResult
@@ -78,6 +79,7 @@ fun PlayerScreen(vm: HushVm, onClose: () -> Unit) {
         vm.repo.isLiked(state.mediaId ?: "")
     }.collectAsState(initial = false)
     val accent = MaterialTheme.colorScheme.primary
+    val openArtist = LocalOpenArtist.current
 
     var scrub by remember { mutableStateOf<Float?>(null) }
     var picking by remember { mutableStateOf(false) }
@@ -108,7 +110,7 @@ fun PlayerScreen(vm: HushVm, onClose: () -> Unit) {
         Modifier
             .fillMaxSize()
             .background(Dusk.Bg)
-            .background(Brush.verticalGradient(listOf(wash.copy(alpha = 0.65f), Dusk.Bg)))
+            .background(Brush.verticalGradient(listOf(wash.copy(alpha = if (Prefs.light) 0.4f else 0.65f), Dusk.Bg)))
             .pointerInput(Unit) {
                 var total = 0f
                 detectVerticalDragGestures(
@@ -166,6 +168,7 @@ fun PlayerScreen(vm: HushVm, onClose: () -> Unit) {
                     )
                     Text(
                         state.artist,
+                        modifier = Modifier.clickable(enabled = state.artist.isNotBlank()) { openArtist(state.artist) },
                         fontSize = 15.sp,
                         color = Dusk.Muted,
                         maxLines = 1,
@@ -195,7 +198,7 @@ fun PlayerScreen(vm: HushVm, onClose: () -> Unit) {
                 colors = SliderDefaults.colors(
                     thumbColor = Dusk.Text,
                     activeTrackColor = Dusk.Text,
-                    inactiveTrackColor = Color(0x33FFFFFF)
+                    inactiveTrackColor = Dusk.Text.copy(alpha = 0.2f)
                 ),
                 modifier = Modifier.padding(top = 8.dp)
             )

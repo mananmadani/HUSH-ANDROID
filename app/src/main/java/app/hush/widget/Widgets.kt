@@ -116,7 +116,7 @@ object WidgetUpdater {
             views.setImageViewResource(R.id.w_art, R.drawable.w_art_placeholder)
         }
         views.setImageViewResource(R.id.w_play, if (s.playing) R.drawable.ic_w_pause else R.drawable.ic_w_play)
-        views.setInt(R.id.w_play_bg, "setColorFilter", Prefs.accent.toArgb())
+        views.setInt(R.id.w_play_bg, "setColorFilter", Prefs.accentDark.toArgb())
 
         val open = PendingIntent.getActivity(
             context, 0,

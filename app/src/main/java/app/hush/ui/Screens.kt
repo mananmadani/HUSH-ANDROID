@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -33,6 +34,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.PlayArrow
@@ -70,6 +72,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.hush.HushVm
+import app.hush.SearchKind
+import app.hush.net.ArtistItem
+import app.hush.net.CollectionItem
 import app.hush.Mood
 import app.hush.Moods
 import app.hush.data.PlaylistInfo
@@ -116,6 +121,15 @@ fun SearchScreen(vm: HushVm) {
                 .padding(horizontal = 20.dp)
         )
 
+        LazyRow(
+            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            items(SearchKind.values().toList()) { kind ->
+                HushChip(kind.label, vm.searchKind == kind) { vm.selectKind(kind) }
+            }
+        }
+
         Box(Modifier.weight(1f).fillMaxWidth()) {
             when {
                 vm.searching -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -144,9 +158,75 @@ fun SearchScreen(vm: HushVm) {
                     }
                 }
 
-                vm.searched && vm.results.isEmpty() -> CenterMessage("No songs found.")
-                vm.searched -> SongList(vm.results, vm, Modifier.fillMaxSize())
+                vm.searched && when (vm.searchKind) {
+                    SearchKind.Songs -> vm.results.isEmpty()
+                    SearchKind.Artists -> vm.artistResults.isEmpty()
+                    else -> vm.collectionResults.isEmpty()
+                } -> CenterMessage("Nothing found.")
+
+                vm.searched -> when (vm.searchKind) {
+                    SearchKind.Songs -> SongList(vm.results, vm, Modifier.fillMaxSize())
+                    SearchKind.Artists -> ArtistResults(vm.artistResults)
+                    else -> CollectionResults(vm.collectionResults)
+                }
                 else -> BrowseSearch(vm, focus)
+            }
+        }
+    }
+}
+
+private fun compactCount(n: Long): String = when {
+    n >= 1_000_000 -> "%.1fM".format(n / 1_000_000.0)
+    n >= 1_000 -> "%.1fK".format(n / 1_000.0)
+    else -> n.toString()
+}
+
+@Composable
+private fun ArtistResults(artists: List<ArtistItem>) {
+    val openArtist = LocalOpenArtist.current
+    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 190.dp)) {
+        items(artists) { artist ->
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .clickable { openArtist(artist.name) }
+                    .padding(horizontal = 20.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Art(artist.thumb, 56.dp, radius = 28.dp, seed = artist.name)
+                Column(Modifier.padding(start = 14.dp)) {
+                    Text(artist.name, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(
+                        if (artist.subscribers > 0) "Artist · ${compactCount(artist.subscribers)} subscribers" else "Artist",
+                        fontSize = 12.sp,
+                        color = Dusk.Muted
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CollectionResults(items: List<CollectionItem>) {
+    val openCollection = LocalOpenCollection.current
+    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 190.dp)) {
+        items(items) { item ->
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .clickable { openCollection(item) }
+                    .padding(horizontal = 20.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Art(item.thumb, 56.dp, radius = 14.dp, seed = item.title)
+                Column(Modifier.weight(1f).padding(start = 14.dp)) {
+                    Text(item.title, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    val detail = listOf(item.subtitle, if (item.count > 0) "${item.count} songs" else "")
+                        .filter { it.isNotBlank() }
+                        .joinToString(" · ")
+                    Text(detail, fontSize = 12.sp, color = Dusk.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                }
             }
         }
     }
@@ -230,6 +310,7 @@ fun LibraryScreen(vm: HushVm, onOpenLiked: () -> Unit, onOpenPlaylist: (Long) ->
     val playlists by vm.playlists.collectAsState()
     val thumbs by vm.playlistThumbs.collectAsState()
     var creating by remember { mutableStateOf(false) }
+    var importing by remember { mutableStateOf(false) }
 
     val export = rememberLauncherForActivityResult(
         ActivityResultContracts.CreateDocument("application/json")
@@ -317,7 +398,12 @@ fun LibraryScreen(vm: HushVm, onOpenLiked: () -> Unit, onOpenPlaylist: (Long) ->
                 if (pair.size == 1) Box(Modifier.weight(1f))
             }
         }
-        item { SectionTitle("Backup", Modifier.padding(start = 20.dp, top = 26.dp, bottom = 4.dp)) }
+        item { SectionTitle("Import and backup", Modifier.padding(start = 20.dp, top = 26.dp, bottom = 4.dp)) }
+        item {
+            ActionRow(Icons.Filled.Link, "Import a playlist", "From a YouTube or Spotify link") {
+                importing = true
+            }
+        }
         item {
             ActionRow(Icons.Filled.Upload, "Back up library", "Save likes and playlists to a file") {
                 export.launch("hush-backup.json")
@@ -330,12 +416,64 @@ fun LibraryScreen(vm: HushVm, onOpenLiked: () -> Unit, onOpenPlaylist: (Long) ->
         }
     }
 
+    if (importing) {
+        ImportDialog(vm) { importing = false }
+    }
     if (creating) {
         NamePlaylistDialog(
             onCreate = { vm.createPlaylist(it); creating = false },
             onDismiss = { creating = false }
         )
     }
+}
+
+@Composable
+private fun ImportDialog(vm: HushVm, onClose: () -> Unit) {
+    val context = LocalContext.current
+    var link by remember { mutableStateOf("") }
+    val busy = vm.importStatus != null
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = { if (!busy) onClose() },
+        containerColor = Dusk.Surface,
+        title = { Text("Import a playlist") },
+        text = {
+            Column {
+                Text(
+                    "Paste a link to a public playlist from YouTube, YouTube Music or Spotify.",
+                    fontSize = 13.sp,
+                    color = Dusk.Muted
+                )
+                OutlinedTextField(
+                    value = link,
+                    onValueChange = { link = it },
+                    enabled = !busy,
+                    singleLine = true,
+                    placeholder = { Text("https://...", color = Dusk.Muted) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 12.dp)
+                )
+                vm.importStatus?.let {
+                    Row(Modifier.padding(top = 14.dp), verticalAlignment = Alignment.CenterVertically) {
+                        CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
+                        Text(it, fontSize = 13.sp, modifier = Modifier.padding(start = 12.dp))
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(
+                enabled = link.isNotBlank() && !busy,
+                onClick = {
+                    vm.importPlaylist(link) { message ->
+                        toast(context, message)
+                        if (message.startsWith("Imported")) onClose()
+                    }
+                }
+            ) { Text("Import") }
+        },
+        dismissButton = { TextButton(enabled = !busy, onClick = onClose) { Text("Cancel") } }
+    )
 }
 
 @Composable

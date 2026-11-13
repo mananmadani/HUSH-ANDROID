@@ -6,6 +6,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+## [1.0.7]
+
+### Added
+- Artist pages (top songs and albums) and album pages. Tap an artist in the player, or choose "Go to artist" on any song.
+- Search now has Songs, Artists, Albums and Playlists tabs.
+- Import a public YouTube, YouTube Music or Spotify playlist from a link (Library > Import a playlist).
+- "Save to my playlists" on any album or online playlist.
+- Light theme, and three more accent colours (Rose, Gold, Teal). Both are in Settings.
+- The Hush logo next to the app name on Home and in Settings.
+
 ## [1.0.6]
 
 ### Added
