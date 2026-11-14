@@ -233,13 +233,14 @@ fun RoundIconButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val haptic = rememberHaptics()
     Box(
         modifier
             .size(44.dp)
             .clip(CircleShape)
             .background(Dusk.Raised)
             .border(1.dp, Dusk.Line, CircleShape)
-            .clickable(onClickLabel = description, onClick = onClick),
+            .clickable(onClickLabel = description) { haptic(Tap.Tick); onClick() },
         contentAlignment = Alignment.Center
     ) {
         Icon(icon, contentDescription = description, tint = Dusk.Text, modifier = Modifier.size(20.dp))
@@ -249,13 +250,14 @@ fun RoundIconButton(
 @Composable
 fun HushChip(label: String, selected: Boolean, onClick: () -> Unit) {
     val shape = RoundedCornerShape(22.dp)
+    val haptic = rememberHaptics()
     Box(
         Modifier
             .height(44.dp)
             .clip(shape)
             .background(if (selected) MaterialTheme.colorScheme.primary else Dusk.Raised)
             .then(if (selected) Modifier else Modifier.border(1.dp, Dusk.Line, shape))
-            .clickable(onClick = onClick)
+            .clickable { haptic(Tap.Click); onClick() }
             .padding(horizontal = 18.dp),
         contentAlignment = Alignment.Center
     ) {
@@ -278,10 +280,11 @@ fun SongRow(
     onAddToPlaylist: (() -> Unit)? = null
 ) {
     var menu by remember { mutableStateOf(false) }
+    val haptic = rememberHaptics()
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
+            .clickable { haptic(Tap.Tick); onClick() }
             .padding(start = 20.dp, end = 8.dp, top = 6.dp, bottom = 6.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -307,19 +310,19 @@ fun SongRow(
             )
         }
         if (onAddToPlaylist != null) {
-            IconButton(onClick = onAddToPlaylist) {
+            IconButton(onClick = { haptic(Tap.Tick); onAddToPlaylist() }) {
                 Icon(Icons.AutoMirrored.Filled.PlaylistAdd, contentDescription = "Add to playlist", tint = Dusk.Muted)
             }
         }
         Box {
-            IconButton(onClick = { menu = true }) {
+            IconButton(onClick = { haptic(Tap.Tick); menu = true }) {
                 Icon(Icons.Filled.MoreVert, contentDescription = "More", tint = Dusk.Muted)
             }
             DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
                 actions.forEach { (label, run) ->
                     DropdownMenuItem(
                         text = { Text(label) },
-                        onClick = { menu = false; run() }
+                        onClick = { haptic(Tap.Click); menu = false; run() }
                     )
                 }
             }
@@ -478,6 +481,7 @@ fun MiniPlayer(
 ) {
     val accent = MaterialTheme.colorScheme.primary
     val shape = RoundedCornerShape(22.dp)
+    val haptic = rememberHaptics()
     Column(
         modifier
             .fillMaxWidth()
@@ -489,7 +493,7 @@ fun MiniPlayer(
                 )
             )
             .border(1.dp, Dusk.Line, shape)
-            .clickable(onClick = onOpen)
+            .clickable { haptic(Tap.Tick); onOpen() }
     ) {
         Row(
             modifier = Modifier
@@ -527,7 +531,7 @@ fun MiniPlayer(
                     .size(44.dp)
                     .clip(CircleShape)
                     .background(Dusk.Text.copy(alpha = 0.12f))
-                    .clickable(onClickLabel = if (state.playing) "Pause" else "Play", onClick = onToggle),
+                    .clickable(onClickLabel = if (state.playing) "Pause" else "Play") { haptic(Tap.Heavy); onToggle() },
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -562,6 +566,8 @@ private val NAV_ITEMS = listOf(
 fun FloatingNav(current: String?, onSelect: (String) -> Unit, modifier: Modifier = Modifier) {
     val accent = MaterialTheme.colorScheme.primary
     val shape = RoundedCornerShape(32.dp)
+    val haptic = rememberHaptics()
+    val pick: (String) -> Unit = { route -> haptic(Tap.Click); onSelect(route) }
     Row(
         modifier
             .fillMaxWidth()
@@ -580,7 +586,7 @@ fun FloatingNav(current: String?, onSelect: (String) -> Unit, modifier: Modifier
                         .height(48.dp)
                         .clip(CircleShape)
                         .background(accent)
-                        .clickable(onClickLabel = item.label) { onSelect(item.route) }
+                        .clickable(onClickLabel = item.label) { pick(item.route) }
                         .padding(horizontal = 18.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically
@@ -593,7 +599,7 @@ fun FloatingNav(current: String?, onSelect: (String) -> Unit, modifier: Modifier
                     Modifier
                         .size(48.dp)
                         .clip(CircleShape)
-                        .clickable(onClickLabel = item.label) { onSelect(item.route) },
+                        .clickable(onClickLabel = item.label) { pick(item.route) },
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(item.icon, contentDescription = item.label, tint = Dusk.Muted, modifier = Modifier.size(22.dp))

@@ -70,8 +70,10 @@ fun HomeScreen(
     vm: HushVm,
     onSettings: () -> Unit,
     onOpenLiked: () -> Unit,
-    onOpenPlaylist: (Long) -> Unit
+    onOpenPlaylist: (Long) -> Unit,
+    onOpenDailyMix: () -> Unit
 ) {
+    val haptic = rememberHaptics()
     val recent by vm.recent.collectAsState()
     val shelves = vm.shelves
     val nothing = shelves.isEmpty() && recent.isEmpty()
@@ -178,7 +180,11 @@ fun HomeScreen(
             if (vm.dailyMix.isNotEmpty()) {
                 item {
                     Box(Modifier.padding(top = 16.dp)) {
-                        DailyMixCard(vm.dailyMix.size) { vm.player.play(vm.dailyMix, 0) }
+                        DailyMixCard(
+                            count = vm.dailyMix.size,
+                            onOpen = { haptic(Tap.Tick); onOpenDailyMix() },
+                            onPlay = { haptic(Tap.Heavy); vm.player.play(vm.dailyMix, 0) }
+                        )
                     }
                 }
             }
@@ -362,7 +368,7 @@ private fun ShelfRow(title: String, songs: List<SongEntity>, vm: HushVm) {
 }
 
 @Composable
-private fun DailyMixCard(count: Int, onPlay: () -> Unit) {
+private fun DailyMixCard(count: Int, onOpen: () -> Unit, onPlay: () -> Unit) {
     Row(
         Modifier
             .padding(horizontal = 20.dp)
@@ -370,8 +376,8 @@ private fun DailyMixCard(count: Int, onPlay: () -> Unit) {
             .height(92.dp)
             .clip(RoundedCornerShape(26.dp))
             .background(Brush.linearGradient(listOf(Color(0xFF3B2A6B), Color(0xFFE26A8D))))
-            .clickable(onClick = onPlay)
-            .padding(horizontal = 22.dp),
+            .clickable(onClickLabel = "Open Daily Mix", onClick = onOpen)
+            .padding(start = 22.dp, end = 22.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(Modifier.weight(1f)) {
@@ -386,7 +392,8 @@ private fun DailyMixCard(count: Int, onPlay: () -> Unit) {
             Modifier
                 .size(46.dp)
                 .clip(CircleShape)
-                .background(Color(0x33FFFFFF)),
+                .background(Color(0x33FFFFFF))
+                .clickable(onClickLabel = "Play Daily Mix", onClick = onPlay),
             contentAlignment = Alignment.Center
         ) {
             Icon(Icons.Filled.PlayArrow, "Play Daily Mix", tint = Color.White)

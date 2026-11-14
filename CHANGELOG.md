@@ -6,6 +6,17 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+## [1.0.9]
+
+### Added
+- Haptic feedback across the app (switch it off in Settings).
+- Tap Daily Mix to see its songs, with Play and Shuffle. The round button still plays it straight away.
+
+### Changed
+- Cleaner Settings: grouped cards, shorter text, a slimmer layout, and nothing hidden behind the mini player.
+- Listening stats redesigned: songs and artists in cards, a bar for each top artist, and a clearer Reset stats button that asks before clearing.
+- Update check is now on by default (daily, GitHub only). Switch it off in Settings.
+
 ## [1.0.8]
 
 ### Added

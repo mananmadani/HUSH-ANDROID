@@ -20,8 +20,8 @@ Hush is built to collect nothing.
   top songs and artists. They are never uploaded and are not included in backups. Reset them any time.
 - **Daily Mix.** The mix is built on the phone. Like the "Because you liked ..." rows, it asks YouTube for
   songs related to a few of your songs.
-- **Update check.** Off by default. If you switch it on (or tap "Check for updates now"), Hush asks
-  GitHub for the latest release of this project. Nothing about you is sent, but GitHub can see your IP
+- **Update check.** On by default (switch it off in Settings). About once a day, or when you tap
+  "Check for updates now", Hush asks GitHub for the latest release of this project. Nothing about you is sent, but GitHub can see your IP
   address, as with any website.
 - **Playlist import.** If you import a playlist, the link you paste is opened on YouTube or Spotify
   (Spotify's public embed page, no login), and the song names are searched on YouTube Music. Nothing

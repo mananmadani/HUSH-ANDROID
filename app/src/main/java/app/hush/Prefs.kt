@@ -31,7 +31,9 @@ object Prefs {
         private set
     var light by mutableStateOf(false)
         private set
-    var autoUpdate by mutableStateOf(false)
+    var autoUpdate by mutableStateOf(true)
+        private set
+    var haptics by mutableStateOf(true)
         private set
 
     private val current: Accent
@@ -50,7 +52,13 @@ object Prefs {
         accentIndex = sp.getInt("accent", 0)
         suggestionsEnabled = sp.getBoolean("suggestions", true)
         light = sp.getBoolean("light", false)
-        autoUpdate = sp.getBoolean("auto_update", false)
+        autoUpdate = sp.getBoolean("auto_update", true)
+        haptics = sp.getBoolean("haptics", true)
+    }
+
+    fun enableHaptics(enabled: Boolean) {
+        haptics = enabled
+        sp.edit().putBoolean("haptics", enabled).apply()
     }
 
     fun setAccent(index: Int) {

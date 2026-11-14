@@ -80,6 +80,7 @@ fun PlayerScreen(vm: HushVm, onClose: () -> Unit) {
     }.collectAsState(initial = false)
     val accent = MaterialTheme.colorScheme.primary
     val openArtist = LocalOpenArtist.current
+    val haptic = rememberHaptics()
 
     var scrub by remember { mutableStateOf<Float?>(null) }
     var picking by remember { mutableStateOf(false) }
@@ -175,10 +176,13 @@ fun PlayerScreen(vm: HushVm, onClose: () -> Unit) {
                         overflow = TextOverflow.Ellipsis
                     )
                 }
-                IconButton(onClick = { picking = true }) {
+                IconButton(onClick = { haptic(Tap.Tick); picking = true }) {
                     Icon(Icons.AutoMirrored.Filled.PlaylistAdd, "Add to playlist")
                 }
-                IconButton(onClick = { state.asSong()?.let { vm.setLiked(it, !liked) } }) {
+                IconButton(onClick = {
+                    haptic(Tap.Confirm)
+                    state.asSong()?.let { vm.setLiked(it, !liked) }
+                }) {
                     Icon(
                         if (liked) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
                         contentDescription = if (liked) "Unlike" else "Like",
@@ -214,10 +218,10 @@ fun PlayerScreen(vm: HushVm, onClose: () -> Unit) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = vm.player::toggleShuffle) {
+                IconButton(onClick = { haptic(Tap.Click); vm.player.toggleShuffle() }) {
                     Icon(Icons.Filled.Shuffle, "Shuffle", tint = if (state.shuffle) accent else Dusk.Muted)
                 }
-                IconButton(onClick = vm.player::previous, modifier = Modifier.size(56.dp)) {
+                IconButton(onClick = { haptic(Tap.Heavy); vm.player.previous() }, modifier = Modifier.size(56.dp)) {
                     Icon(Icons.Filled.SkipPrevious, "Previous", modifier = Modifier.size(36.dp))
                 }
                 Box(
@@ -225,7 +229,10 @@ fun PlayerScreen(vm: HushVm, onClose: () -> Unit) {
                         .size(72.dp)
                         .clip(CircleShape)
                         .background(accent)
-                        .clickable(onClickLabel = if (state.playing) "Pause" else "Play", onClick = vm.player::toggle),
+                        .clickable(onClickLabel = if (state.playing) "Pause" else "Play") {
+                            haptic(Tap.Heavy)
+                            vm.player.toggle()
+                        },
                     contentAlignment = Alignment.Center
                 ) {
                     if (state.loading && !state.playing) {
@@ -243,10 +250,10 @@ fun PlayerScreen(vm: HushVm, onClose: () -> Unit) {
                         )
                     }
                 }
-                IconButton(onClick = vm.player::next, modifier = Modifier.size(56.dp)) {
+                IconButton(onClick = { haptic(Tap.Heavy); vm.player.next() }, modifier = Modifier.size(56.dp)) {
                     Icon(Icons.Filled.SkipNext, "Next", modifier = Modifier.size(36.dp))
                 }
-                IconButton(onClick = vm.player::cycleRepeat) {
+                IconButton(onClick = { haptic(Tap.Click); vm.player.cycleRepeat() }) {
                     val on = state.repeatMode != Player.REPEAT_MODE_OFF
                     Icon(
                         if (state.repeatMode == Player.REPEAT_MODE_ONE) Icons.Filled.RepeatOne else Icons.Filled.Repeat,
@@ -266,7 +273,7 @@ fun PlayerScreen(vm: HushVm, onClose: () -> Unit) {
                 IconButton(onClick = {
                     state.mediaId?.let { shareSong(context, state.title, state.artist, it) }
                 }) { Icon(Icons.Filled.Share, "Share", tint = Dusk.Muted) }
-                IconButton(onClick = { showQueue = true }) {
+                IconButton(onClick = { haptic(Tap.Tick); showQueue = true }) {
                     Icon(Icons.Filled.Bedtime, "Sleep timer", tint = if (sleep.active) accent else Dusk.Muted)
                 }
             }
@@ -276,8 +283,8 @@ fun PlayerScreen(vm: HushVm, onClose: () -> Unit) {
     if (picking) {
         PlaylistPickerDialog(
             playlists = playlists,
-            onPick = { id -> state.asSong()?.let { vm.addToPlaylist(id, it) }; picking = false },
-            onCreate = { name -> vm.createPlaylist(name, state.asSong()); picking = false },
+            onPick = { id -> haptic(Tap.Confirm); state.asSong()?.let { vm.addToPlaylist(id, it) }; picking = false },
+            onCreate = { name -> haptic(Tap.Confirm); vm.createPlaylist(name, state.asSong()); picking = false },
             onDismiss = { picking = false }
         )
     }

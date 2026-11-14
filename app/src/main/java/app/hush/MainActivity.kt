@@ -47,6 +47,7 @@ import androidx.compose.ui.unit.dp
 import app.hush.net.CollectionItem
 import app.hush.ui.ArtistScreen
 import app.hush.ui.CollectionScreen
+import app.hush.ui.DailyMixScreen
 import app.hush.ui.Dusk
 import app.hush.ui.LocalOpenArtist
 import app.hush.ui.LocalOpenCollection
@@ -160,10 +161,12 @@ private fun HushRoot(vm: HushVm = viewModel()) {
                         vm,
                         onSettings = { nav.navigate("settings") },
                         onOpenLiked = { nav.navigate("liked") },
-                        onOpenPlaylist = { nav.navigate("playlist/$it") }
+                        onOpenPlaylist = { nav.navigate("playlist/$it") },
+                        onOpenDailyMix = { nav.navigate("dailymix") }
                     )
                 }
             }
+            composable("dailymix") { Page { DailyMixScreen(vm, onBack = { nav.popBackStack() }) } }
             composable("search") { Page { SearchScreen(vm) } }
             composable("library") {
                 Page {
