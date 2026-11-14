@@ -20,8 +20,11 @@ and no account. It does one job and leaves everything else out.
   recent searches and mood tiles.
 - **Full player:** queue, shuffle, repeat, seek, and an endless "up next" built from related songs.
 - **Background playback:** notification and lock-screen controls (Media3).
-- **Library:** liked songs and your own playlists with cover collages, stored on your device,
-  plus backup and restore to a file you keep.
+- **Smooth song changes:** the next song blends in while the current one ends, Apple Music style,
+  with no gap. Choose a blend of 2 to 12 seconds, or switch it off, in Settings > Playback.
+- **DJ mode (beta):** adds a DJ-style tempo ride to the blend. Experimental, and off by default.
+- **Library:** liked songs and your own playlists as clean cards with their covers, stored on your
+  device, plus backup and restore to a file you keep.
 - **Daily Mix and listening stats:** a fresh mix each day and your top songs and artists, all worked out on your phone.
 - **Search inside playlists** and an **update check** (on by default, can be turned off).
 - **Artists, albums and playlists:** search them, open their pages, play them or save them to your library.
@@ -73,6 +76,11 @@ UI (Jetpack Compose)  ->  HushVm  ->  YtMusic (NewPipeExtractor)   search, relat
 
 Queue items carry the YouTube watch URL. The real audio stream link is resolved right before each
 track loads and cached for a few hours, so long queues never hold expired links.
+
+For smooth song changes, a second, short-lived player loads the start of the next song a few
+seconds before the current one ends. The two blend, then the main player takes over, so the queue,
+notification and lock screen only ever follow one player. If the next song is slow to load, Hush
+falls back to a plain fade. All of this is in `TransitionEngine`.
 
 | Path | Purpose |
 | --- | --- |

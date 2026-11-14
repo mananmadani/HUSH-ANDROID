@@ -6,6 +6,15 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+## [1.0.10]
+
+### Added
+- Smooth song changes, Apple Music style: the next song starts while the current one is still ending, and the two blend, so there is no gap. It uses a second player for a few seconds. Switch it off, or pick a blend length of 2 to 12 seconds, in Settings > Playback. Skipping a song also fades the new one in softly.
+- DJ mode (beta): adds a tempo ride to the blend, so the ending song speeds up a little and the next one settles back to normal. It is new and may sound better on some songs than others. Switch it on in Settings > Playback.
+
+### Changed
+- Library redesigned to match Settings: grouped cards, playlists as clean rows with their cover, and tinted icons for Listening stats, Import, Back up and Restore.
+
 ## [1.0.9]
 
 ### Added

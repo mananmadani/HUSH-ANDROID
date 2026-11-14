@@ -8,6 +8,7 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DataSpec
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.datasource.ResolvingDataSource
+import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.session.MediaSession
@@ -24,6 +25,7 @@ import app.hush.net.YtMusic
 class PlaybackService : MediaSessionService() {
 
     private var session: MediaSession? = null
+    private var transitions: TransitionEngine? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -57,7 +59,33 @@ class PlaybackService : MediaSessionService() {
             .build()
 
         session = MediaSession.Builder(this, player).build()
+
+        // Smooth song changes and DJ mode (both are switched in Settings).
+        transitions = TransitionEngine(player) { buildSecondPlayer(resolving) }.also { it.start() }
     }
+
+    /**
+     * The helper player for the crossfade. It plays from the same sources as the main player,
+     * never asks for audio focus (the main player owns it), and keeps only a small buffer,
+     * because it only ever plays the first seconds of the next song.
+     */
+    private fun buildSecondPlayer(source: ResolvingDataSource.Factory): ExoPlayer =
+        ExoPlayer.Builder(this)
+            .setMediaSourceFactory(DefaultMediaSourceFactory(source))
+            .setLoadControl(
+                DefaultLoadControl.Builder()
+                    .setBufferDurationsMs(8_000, 20_000, 1_500, 3_000)
+                    .build()
+            )
+            .setAudioAttributes(
+                AudioAttributes.Builder()
+                    .setUsage(C.USAGE_MEDIA)
+                    .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
+                    .build(),
+                false
+            )
+            .setWakeMode(C.WAKE_MODE_NETWORK)
+            .build()
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? = session
 
@@ -67,6 +95,8 @@ class PlaybackService : MediaSessionService() {
     }
 
     override fun onDestroy() {
+        transitions?.release()
+        transitions = null
         session?.run {
             player.release()
             release()

@@ -30,6 +30,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Close
@@ -325,31 +326,28 @@ fun LibraryScreen(
         ActivityResultContracts.OpenDocument()
     ) { uri -> if (uri != null) vm.importBackup(uri) { toast(context, it) } }
 
-    val cells: List<PlaylistInfo?> = listOf<PlaylistInfo?>(null) + playlists
-
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 190.dp)) {
-        item { ScreenTitle("Library", Modifier.padding(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 12.dp)) }
+        item { ScreenTitle("Library", Modifier.padding(start = 24.dp, end = 20.dp, top = 16.dp, bottom = 16.dp)) }
         item {
-            val accent = MaterialTheme.colorScheme.primary
             Row(
                 Modifier
-                    .padding(horizontal = 20.dp)
+                    .padding(horizontal = 16.dp)
                     .fillMaxWidth()
-                    .height(104.dp)
-                    .clip(RoundedCornerShape(26.dp))
+                    .height(96.dp)
+                    .clip(RoundedCornerShape(22.dp))
                     .background(Brush.linearGradient(listOf(Dusk.Violet, Dusk.Pink)))
                     .clickable(onClick = onOpenLiked)
-                    .padding(horizontal = 22.dp),
+                    .padding(horizontal = 20.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(Icons.Filled.Favorite, null, tint = Color.White, modifier = Modifier.size(30.dp))
+                Icon(Icons.Filled.Favorite, null, tint = Color.White, modifier = Modifier.size(28.dp))
                 Column(Modifier.weight(1f).padding(start = 16.dp)) {
-                    Text("Liked songs", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                    Text("Liked songs", fontSize = 19.sp, fontWeight = FontWeight.Bold, color = Color.White)
                     Text("${liked.size} songs", fontSize = 13.sp, color = Color(0xE6FFFFFF))
                 }
                 Box(
                     Modifier
-                        .size(46.dp)
+                        .size(44.dp)
                         .clip(CircleShape)
                         .background(Color(0x33FFFFFF))
                         .clickable(enabled = liked.isNotEmpty()) { vm.player.play(liked, 0) },
@@ -359,68 +357,58 @@ fun LibraryScreen(
                 }
             }
         }
-        item { SectionTitle("Playlists", Modifier.padding(start = 20.dp, top = 26.dp, bottom = 10.dp)) }
-        items(cells.chunked(2)) { pair ->
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(14.dp)
-            ) {
-                pair.forEach { p ->
-                    Column(Modifier.weight(1f)) {
-                        if (p == null) {
-                            Box(
-                                Modifier
-                                    .fillMaxWidth()
-                                    .aspectRatio(1f)
-                                    .clip(RoundedCornerShape(22.dp))
-                                    .background(Dusk.Raised)
-                                    .border(1.dp, Dusk.Line, RoundedCornerShape(22.dp))
-                                    .clickable { creating = true },
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(Icons.Filled.Add, "New playlist", tint = Dusk.Muted, modifier = Modifier.size(32.dp))
-                            }
-                            Text("New playlist", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 8.dp))
-                        } else {
-                            Collage(
-                                thumbs[p.id].orEmpty(),
-                                p.name,
-                                Modifier.fillMaxWidth().clickable { onOpenPlaylist(p.id) }
-                            )
-                            Text(
-                                p.name,
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.padding(top = 8.dp)
-                            )
-                            Text("${p.cnt} songs", fontSize = 12.sp, color = Dusk.Muted)
-                        }
-                    }
+
+        item { GroupLabel("PLAYLISTS") }
+        item {
+            SettingsCard {
+                LibraryRow(
+                    title = "New playlist",
+                    subtitle = "Make one of your own",
+                    leading = { IconTile(Icons.Filled.Add, 54.dp, 14.dp) },
+                    onClick = { creating = true }
+                )
+                playlists.forEach { p ->
+                    CardDivider()
+                    LibraryRow(
+                        title = p.name,
+                        subtitle = if (p.cnt == 1) "1 song" else "${p.cnt} songs",
+                        leading = { Collage(thumbs[p.id].orEmpty(), p.name, Modifier.size(54.dp), radius = 14.dp) },
+                        onClick = { onOpenPlaylist(p.id) }
+                    )
                 }
-                if (pair.size == 1) Box(Modifier.weight(1f))
             }
         }
-        item { SectionTitle("More", Modifier.padding(start = 20.dp, top = 26.dp, bottom = 4.dp)) }
+
+        item { GroupLabel("MORE") }
         item {
-            ActionRow(Icons.Filled.BarChart, "Listening stats", "Your top songs and artists, kept on this phone", onOpenStats)
-        }
-        item {
-            ActionRow(Icons.Filled.Link, "Import a playlist", "From a YouTube or Spotify link") {
-                importing = true
-            }
-        }
-        item {
-            ActionRow(Icons.Filled.Upload, "Back up library", "Save likes and playlists to a file") {
-                export.launch("hush-backup.json")
-            }
-        }
-        item {
-            ActionRow(Icons.Filled.Download, "Restore from backup", "Add likes and playlists from a file") {
-                import.launch(arrayOf("*/*"))
+            SettingsCard {
+                LibraryRow(
+                    title = "Listening stats",
+                    subtitle = "Your top songs and artists, kept on this phone",
+                    leading = { IconTile(Icons.Filled.BarChart, 40.dp, 12.dp) },
+                    onClick = onOpenStats
+                )
+                CardDivider()
+                LibraryRow(
+                    title = "Import a playlist",
+                    subtitle = "From a YouTube or Spotify link",
+                    leading = { IconTile(Icons.Filled.Link, 40.dp, 12.dp) },
+                    onClick = { importing = true }
+                )
+                CardDivider()
+                LibraryRow(
+                    title = "Back up library",
+                    subtitle = "Save likes and playlists to a file",
+                    leading = { IconTile(Icons.Filled.Upload, 40.dp, 12.dp) },
+                    onClick = { export.launch("hush-backup.json") }
+                )
+                CardDivider()
+                LibraryRow(
+                    title = "Restore from backup",
+                    subtitle = "Add likes and playlists from a file",
+                    leading = { IconTile(Icons.Filled.Download, 40.dp, 12.dp) },
+                    onClick = { import.launch(arrayOf("*/*")) }
+                )
             }
         }
     }
@@ -485,37 +473,61 @@ private fun ImportDialog(vm: HushVm, onClose: () -> Unit) {
     )
 }
 
+/** A soft, accent-tinted square with an icon in it. */
 @Composable
-private fun ActionRow(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+private fun IconTile(icon: androidx.compose.ui.graphics.vector.ImageVector, size: Dp, radius: Dp) {
+    val accent = MaterialTheme.colorScheme.primary
+    Box(
+        Modifier
+            .size(size)
+            .clip(RoundedCornerShape(radius))
+            .background(accent.copy(alpha = 0.14f)),
+        contentAlignment = Alignment.Center
+    ) { Icon(icon, null, tint = accent, modifier = Modifier.size(size * 0.45f)) }
+}
+
+/** One row inside a Library card: a picture or icon, two lines of text and a small arrow. */
+@Composable
+private fun LibraryRow(
     title: String,
     subtitle: String,
+    leading: @Composable () -> Unit,
     onClick: () -> Unit
 ) {
+    val haptic = rememberHaptics()
     Row(
         Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(horizontal = 20.dp, vertical = 12.dp),
+            .clickable { haptic(Tap.Tick); onClick() }
+            .padding(horizontal = 14.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(
-            Modifier.size(44.dp).clip(CircleShape).background(Dusk.Raised),
-            contentAlignment = Alignment.Center
-        ) { Icon(icon, null, tint = Dusk.Text, modifier = Modifier.size(20.dp)) }
-        Column(Modifier.padding(start = 14.dp)) {
-            Text(title, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
-            Text(subtitle, fontSize = 12.sp, color = Dusk.Muted)
+        leading()
+        Column(Modifier.weight(1f).padding(start = 14.dp, end = 8.dp)) {
+            Text(
+                title,
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Medium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(subtitle, fontSize = 12.sp, color = Dusk.Muted, maxLines = 2, overflow = TextOverflow.Ellipsis)
         }
+        Icon(
+            Icons.AutoMirrored.Filled.KeyboardArrowRight,
+            contentDescription = null,
+            tint = Dusk.Muted,
+            modifier = Modifier.size(20.dp)
+        )
     }
 }
 
 @Composable
-fun Collage(thumbs: List<String>, seed: String, modifier: Modifier) {
+fun Collage(thumbs: List<String>, seed: String, modifier: Modifier, radius: Dp = 22.dp) {
     Box(
         modifier
             .aspectRatio(1f)
-            .clip(RoundedCornerShape(22.dp))
+            .clip(RoundedCornerShape(radius))
             .background(artBrush(seed))
     ) {
         when {

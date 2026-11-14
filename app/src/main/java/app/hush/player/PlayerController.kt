@@ -128,6 +128,8 @@ class PlayerController(
         scope.launch {
             while (true) {
                 delay(500)
+                // The crossfade must not start the next song early while this timer waits for the song to end.
+                Fades.endOfSongSleep = _sleep.value.endOfSong
                 if (controller?.isPlaying == true) {
                     refresh()
                     onTick(500)
