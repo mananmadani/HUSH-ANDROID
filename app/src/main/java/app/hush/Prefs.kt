@@ -76,7 +76,7 @@ object Prefs {
         sp.edit().putBoolean("smooth_changes", enabled).apply()
     }
 
-    fun setFadeSeconds(seconds: Int) {
+    fun chooseFadeSeconds(seconds: Int) {
         fadeSeconds = seconds
         sp.edit().putInt("fade_seconds", seconds).apply()
     }

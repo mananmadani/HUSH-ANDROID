@@ -125,7 +125,7 @@ fun SettingsScreen(vm: HushVm, onBack: () -> Unit) {
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         listOf(2, 4, 6, 8, 12).forEach { sec ->
-                            HushChip("${sec}s", Prefs.fadeSeconds == sec) { Prefs.setFadeSeconds(sec) }
+                            HushChip("${sec}s", Prefs.fadeSeconds == sec) { Prefs.chooseFadeSeconds(sec) }
                         }
                     }
                 }
