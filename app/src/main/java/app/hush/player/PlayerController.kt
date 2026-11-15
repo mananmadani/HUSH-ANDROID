@@ -128,8 +128,6 @@ class PlayerController(
         scope.launch {
             while (true) {
                 delay(500)
-                // The crossfade must not start the next song early while this timer waits for the song to end.
-                Fades.endOfSongSleep = _sleep.value.endOfSong
                 if (controller?.isPlaying == true) {
                     refresh()
                     onTick(500)
@@ -216,7 +214,9 @@ class PlayerController(
         if (songs.isEmpty()) return
         withController { c ->
             c.shuffleModeEnabled = shuffle
-            c.setMediaItems(songs.map(::toItem), index.coerceIn(0, songs.lastIndex), 0L)
+            // A shuffled start begins at a random song, not always the first one in the list.
+            val start = if (shuffle) songs.indices.random() else index.coerceIn(0, songs.lastIndex)
+            c.setMediaItems(songs.map(::toItem), start, 0L)
             c.prepare()
             c.play()
         }

@@ -36,18 +36,6 @@ object Prefs {
     var haptics by mutableStateOf(true)
         private set
 
-    /** Songs fade into each other instead of stopping and starting abruptly. */
-    var smoothChanges by mutableStateOf(true)
-        private set
-
-    /** Length of the fade between songs, in seconds. */
-    var fadeSeconds by mutableStateOf(4)
-        private set
-
-    /** DJ mode (beta): a tempo ride between songs, on top of the smooth fade. */
-    var djMode by mutableStateOf(false)
-        private set
-
     private val current: Accent
         get() = ACCENTS[accentIndex.coerceIn(0, ACCENTS.lastIndex)]
 
@@ -66,24 +54,6 @@ object Prefs {
         light = sp.getBoolean("light", false)
         autoUpdate = sp.getBoolean("auto_update", true)
         haptics = sp.getBoolean("haptics", true)
-        smoothChanges = sp.getBoolean("smooth_changes", true)
-        fadeSeconds = sp.getInt("fade_seconds", 4)
-        djMode = sp.getBoolean("dj_mode", false)
-    }
-
-    fun enableSmoothChanges(enabled: Boolean) {
-        smoothChanges = enabled
-        sp.edit().putBoolean("smooth_changes", enabled).apply()
-    }
-
-    fun chooseFadeSeconds(seconds: Int) {
-        fadeSeconds = seconds
-        sp.edit().putInt("fade_seconds", seconds).apply()
-    }
-
-    fun enableDjMode(enabled: Boolean) {
-        djMode = enabled
-        sp.edit().putBoolean("dj_mode", enabled).apply()
     }
 
     fun enableHaptics(enabled: Boolean) {

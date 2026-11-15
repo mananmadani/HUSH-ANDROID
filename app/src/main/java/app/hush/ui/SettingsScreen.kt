@@ -109,36 +109,6 @@ fun SettingsScreen(vm: HushVm, onBack: () -> Unit) {
             }
         }
 
-        GroupLabel("PLAYBACK")
-        SettingsCard {
-            SwitchRow("Smooth song changes", "Songs overlap and blend, like Apple Music", Prefs.smoothChanges) {
-                Prefs.enableSmoothChanges(it)
-            }
-            if (Prefs.smoothChanges || Prefs.djMode) {
-                CardDivider()
-                Column(Modifier.padding(horizontal = 16.dp, vertical = 14.dp)) {
-                    Text("Fade length", fontSize = 15.sp, fontWeight = FontWeight.Medium)
-                    Row(
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(top = 10.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        listOf(2, 4, 6, 8, 12).forEach { sec ->
-                            HushChip("${sec}s", Prefs.fadeSeconds == sec) { Prefs.chooseFadeSeconds(sec) }
-                        }
-                    }
-                }
-            }
-            CardDivider()
-            SwitchRow(
-                "DJ mode",
-                "Adds a DJ-style tempo ride to the blend. Uses a 6 second fade or more.",
-                Prefs.djMode,
-                badge = "BETA"
-            ) { Prefs.enableDjMode(it) }
-        }
-
         GroupLabel("PRIVACY AND FEEL")
         SettingsCard {
             SwitchRow("Search suggestions", "Sends typing to YouTube", Prefs.suggestionsEnabled) {
@@ -243,13 +213,7 @@ fun CardDivider() {
 }
 
 @Composable
-private fun SwitchRow(
-    title: String,
-    subtitle: String?,
-    checked: Boolean,
-    badge: String? = null,
-    onChange: (Boolean) -> Unit
-) {
+private fun SwitchRow(title: String, subtitle: String?, checked: Boolean, onChange: (Boolean) -> Unit) {
     val haptic = rememberHaptics()
     Row(
         Modifier
@@ -259,21 +223,7 @@ private fun SwitchRow(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(Modifier.weight(1f)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(title, fontSize = 15.sp, fontWeight = FontWeight.Medium)
-                if (badge != null) {
-                    val accent = MaterialTheme.colorScheme.primary
-                    Box(
-                        Modifier
-                            .padding(start = 8.dp)
-                            .clip(RoundedCornerShape(6.dp))
-                            .background(accent.copy(alpha = 0.18f))
-                            .padding(horizontal = 6.dp, vertical = 2.dp)
-                    ) {
-                        Text(badge, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.8.sp, color = accent)
-                    }
-                }
-            }
+            Text(title, fontSize = 15.sp, fontWeight = FontWeight.Medium)
             if (subtitle != null) Text(subtitle, fontSize = 12.sp, color = Dusk.Muted)
         }
         Switch(

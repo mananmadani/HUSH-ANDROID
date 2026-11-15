@@ -6,6 +6,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+## [1.0.11]
+
+### Fixed
+- Shuffle now starts on a random song. Before, playing a list with Shuffle always began with the first song, and only the rest was shuffled.
+
+### Removed
+- Smooth song changes and DJ mode (added in 1.0.10), to keep Hush small and focused. The new Library design stays.
+
 ## [1.0.10]
 
 ### Added
