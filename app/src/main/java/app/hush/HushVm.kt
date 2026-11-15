@@ -142,21 +142,21 @@ class HushVm(app: Application) : AndroidViewModel(app) {
      */
     private fun buildDailyMix(liked: List<SongEntity>, recent: List<SongEntity>) {
         mixJob?.cancel()
-        val pool = (liked + recent).distinctBy { it.url }
+        val pool = Taste.filterBlocked((liked + recent).distinctBy { it.url })
         if (pool.isEmpty()) {
             dailyMix = emptyList()
             return
         }
         mixJob = viewModelScope.launch {
             val rnd = kotlin.random.Random(System.currentTimeMillis() / 86_400_000L)
-            val seeds = pool.shuffled(rnd).take(4)
+            val seeds = pool.filter { !Taste.isSkippedOften(it.artist) }.ifEmpty { pool }.shuffled(rnd).take(4)
             val related = coroutineScope {
                 seeds.map { s ->
                     async { runCatching { YtMusic.related(s.url) }.getOrDefault(emptyList()) }
                 }.awaitAll()
             }
             val knownUrls = pool.map { it.url }.toSet()
-            val fresh = related.flatten().filter { it.url !in knownUrls }.distinctBy { it.url }
+            val fresh = Taste.filterSuggestions(related.flatten()).filter { it.url !in knownUrls }.distinctBy { it.url }
             val familiar = pool.shuffled(rnd).take(8)
             val mix = (fresh.shuffled(rnd).take(22) + familiar).distinctBy { it.url }.shuffled(rnd)
             ensureActive()
@@ -179,7 +179,7 @@ class HushVm(app: Application) : AndroidViewModel(app) {
 
             val likedSongs = runCatching { repo.liked().first() }.getOrDefault(emptyList())
             val likedUrls = likedSongs.map { it.url }.toSet()
-            val picks = likedSongs.shuffled().take(2)
+            val picks = Taste.filterBlocked(likedSongs).filter { !Taste.isSkippedOften(it.artist) }.shuffled().take(2)
             val recentSongs = runCatching { repo.recent().first() }.getOrDefault(emptyList())
             buildDailyMix(likedSongs, recentSongs)
 
@@ -187,12 +187,12 @@ class HushVm(app: Application) : AndroidViewModel(app) {
                 picks.forEach { song ->
                     add(
                         ShelfSource("Because you liked ${song.title}") {
-                            YtMusic.related(song.url).filter { it.url !in likedUrls }
+                            Taste.filterSuggestions(YtMusic.related(song.url)).filter { it.url !in likedUrls }
                         }
                     )
                 }
                 Shelves.forRegion(Region.countryCode, Region.countryName).forEach { spec ->
-                    add(ShelfSource(spec.title) { YtMusic.search(spec.query) })
+                    add(ShelfSource(spec.title) { Taste.filterBlocked(YtMusic.search(spec.query)) })
                 }
             }
 
@@ -228,7 +228,7 @@ class HushVm(app: Application) : AndroidViewModel(app) {
         }
         moodJob = viewModelScope.launch {
             moodLoading = true
-            moodSongs = runCatching { YtMusic.search(selected.query) }.getOrDefault(emptyList())
+            moodSongs = Taste.filterBlocked(runCatching { YtMusic.search(selected.query) }.getOrDefault(emptyList()))
             ensureActive()
             moodLoading = false
         }

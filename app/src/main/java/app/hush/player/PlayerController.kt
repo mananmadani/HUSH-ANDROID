@@ -10,11 +10,15 @@ import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import app.hush.data.SongEntity
+import app.hush.Taste
 import app.hush.net.YtMusic
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -84,6 +88,9 @@ class PlayerController(
     val sleep: StateFlow<SleepState> = _sleep.asStateFlow()
     private var sleepJob: Job? = null
 
+    /** Set when the user picks another song on purpose (back, queue), so it is not counted as a skip. */
+    private var ignoreNextSkip = false
+
     private val listener = object : Player.Listener {
         override fun onEvents(player: Player, events: Player.Events) {
             if (events.contains(Player.EVENT_TIMELINE_CHANGED)) refreshQueue()
@@ -99,6 +106,7 @@ class PlayerController(
         override fun onMediaItemTransition(item: MediaItem?, reason: Int) {
             val c = controller ?: return
             if (item == null) return
+            learnFrom(item.mediaId, reason)
             onTrackStarted(item.toSong())
 
             // "End of song" sleep timer: let the song finish, then stop before the next one.
@@ -175,13 +183,72 @@ class PlayerController(
         }
     }
 
+    /**
+     * Keeps the music going when the queue runs out. It looks at the last few songs, not just the
+     * very last one, so the mood stays steady. Suggestions are blended between those songs, songs
+     * and artists you said "Don't play this" for (or keep skipping) are left out, and the same
+     * artist is not played back to back.
+     */
     private fun extendQueue(lastMediaId: String) {
+        val c = controller ?: return
+        val count = c.mediaItemCount
+        if (count == 0) return
+        val seeds = (0 until count).toList().takeLast(4).map { c.getMediaItemAt(it).mediaId }
+            .ifEmpty { listOf(lastMediaId) }
+        val lastArtist = c.getMediaItemAt(count - 1).mediaMetadata.artist?.toString().orEmpty()
         scope.launch {
-            val more = runCatching { YtMusic.related(lastMediaId) }.getOrDefault(emptyList())
-            withController { c ->
-                val existing = (0 until c.mediaItemCount).map { c.getMediaItemAt(it).mediaId }.toSet()
-                val fresh = more.filter { it.url !in existing }.take(20)
-                if (fresh.isNotEmpty()) c.addMediaItems(fresh.map(::toItem))
+            val lists = coroutineScope {
+                seeds.map { seed ->
+                    async { runCatching { YtMusic.related(seed) }.getOrDefault(emptyList()) }
+                }.awaitAll()
+            }
+            // Take one from each list in turn, so no single song dominates.
+            val pending = lists.map { it.toMutableList() }
+            val merged = ArrayList<SongEntity>()
+            while (pending.any { it.isNotEmpty() }) {
+                for (list in pending) if (list.isNotEmpty()) merged.add(list.removeAt(0))
+            }
+            withController { ctl ->
+                val existing = (0 until ctl.mediaItemCount).map { ctl.getMediaItemAt(it).mediaId }.toSet()
+                val fresh = Taste.filterSuggestions(merged)
+                    .distinctBy { it.url }
+                    .filter { it.url !in existing }
+                    .take(20)
+                if (fresh.isNotEmpty()) ctl.addMediaItems(spreadArtists(fresh, lastArtist).map(::toItem))
+            }
+        }
+    }
+
+    /** Reorder so the same artist does not come twice in a row, where it can be avoided. */
+    private fun spreadArtists(songs: List<SongEntity>, lastArtist: String): List<SongEntity> {
+        val pending = songs.toMutableList()
+        val out = ArrayList<SongEntity>()
+        var previous = lastArtist.trim().lowercase()
+        while (pending.isNotEmpty()) {
+            val i = pending.indexOfFirst { it.artist.trim().lowercase() != previous }.let { if (it < 0) 0 else it }
+            val song = pending.removeAt(i)
+            out.add(song)
+            previous = song.artist.trim().lowercase()
+        }
+        return out
+    }
+
+    /**
+     * Learn from how the last song ended: played through counts for the artist, skipped in the
+     * first seconds counts against. The state still describes the old song at this moment.
+     */
+    private fun learnFrom(newId: String, reason: Int) {
+        val old = _state.value
+        val oldId = old.mediaId ?: return
+        if (oldId == newId || old.artist.isBlank()) return
+        when (reason) {
+            Player.MEDIA_ITEM_TRANSITION_REASON_AUTO -> Taste.recordFinish(old.artist)
+            Player.MEDIA_ITEM_TRANSITION_REASON_SEEK -> {
+                if (ignoreNextSkip) {
+                    ignoreNextSkip = false
+                } else if (old.positionMs < SKIP_WITHIN_MS && old.durationMs > MIN_SONG_MS) {
+                    Taste.recordSkip(old.artist)
+                }
             }
         }
     }
@@ -212,11 +279,19 @@ class PlayerController(
     /** Replace the queue with [songs] and start at [index]. */
     fun play(songs: List<SongEntity>, index: Int = 0, shuffle: Boolean = false) {
         if (songs.isEmpty()) return
+        // Songs marked "Don't play this" are left out, unless that exact song was tapped.
+        val queue = songs.filterIndexed { i, s -> !Taste.isBlocked(s) || (!shuffle && i == index) }
+            .ifEmpty { songs }
         withController { c ->
             c.shuffleModeEnabled = shuffle
             // A shuffled start begins at a random song, not always the first one in the list.
-            val start = if (shuffle) songs.indices.random() else index.coerceIn(0, songs.lastIndex)
-            c.setMediaItems(songs.map(::toItem), start, 0L)
+            val start = if (shuffle) {
+                queue.indices.random()
+            } else {
+                songs.take(index.coerceIn(0, songs.lastIndex)).count { !Taste.isBlocked(it) }
+                    .coerceIn(0, queue.lastIndex)
+            }
+            c.setMediaItems(queue.map(::toItem), start, 0L)
             c.prepare()
             c.play()
         }
@@ -236,7 +311,10 @@ class PlayerController(
     fun previous() = withController {
         // Behave like every music app: restart the song first, go back if already near the start.
         if (it.currentPosition > 3000 || !it.hasPreviousMediaItem()) it.seekTo(0)
-        else it.seekToPreviousMediaItem()
+        else {
+            ignoreNextSkip = true
+            it.seekToPreviousMediaItem()
+        }
     }
 
     fun seekTo(ms: Long) = withController { it.seekTo(ms) }
@@ -253,6 +331,7 @@ class PlayerController(
 
     fun jumpTo(index: Int) = withController {
         if (index in 0 until it.mediaItemCount) {
+            if (index != it.currentMediaItemIndex) ignoreNextSkip = true
             it.seekTo(index, 0L)
             it.play()
         }
@@ -266,6 +345,14 @@ class PlayerController(
     fun clearUpcoming() = withController { c ->
         val from = c.currentMediaItemIndex + 1
         if (from < c.mediaItemCount) c.removeMediaItems(from, c.mediaItemCount)
+    }
+
+    private companion object {
+        /** A song left within this long counts as a skip. */
+        const val SKIP_WITHIN_MS = 30_000L
+
+        /** Very short tracks are never counted as skips. */
+        const val MIN_SONG_MS = 60_000L
     }
 
     // --- Sleep timer --------------------------------------------------------

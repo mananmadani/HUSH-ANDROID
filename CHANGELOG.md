@@ -6,6 +6,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+## [1.0.12]
+
+### Added
+- "Don't play this" and "Don't play this artist" in the song menu. Hush stops suggesting and queueing them. Undo it in Settings > Recommendations.
+- Hush learns from skips, on your phone only: an artist you keep skipping in the first seconds is left out of suggestions. Your own playlists and searches are never changed. "Forget skip history" in Settings clears it.
+
+### Changed
+- Smarter endless queue: when your queue runs out, Hush now looks at your last few songs instead of only the last one, blends the suggestions, and avoids playing the same artist back to back.
+- Daily Mix and the "Because you liked" rows also leave out hidden songs and artists you keep skipping.
+
 ## [1.0.11]
 
 ### Fixed

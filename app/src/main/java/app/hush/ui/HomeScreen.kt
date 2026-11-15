@@ -151,7 +151,8 @@ fun HomeScreen(
                         onClick = { vm.player.play(vm.moodSongs, i) },
                         actions = listOf(
                             "Play next" to { vm.player.playNext(song) },
-                            "Add to queue" to { vm.player.addToQueue(song) }
+                            "Add to queue" to { vm.player.addToQueue(song) },
+                            "Don't play this" to { hideSong(context, song) }
                         ),
                         onAddToPlaylist = { pickFor = song }
                     )

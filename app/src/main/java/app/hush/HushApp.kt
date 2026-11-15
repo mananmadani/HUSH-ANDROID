@@ -27,6 +27,7 @@ class HushApp : Application() {
         super.onCreate()
         Prefs.init(this)
         Stats.init(this)
+        Taste.init(this)
 
         // Ask YouTube Music in the phone's own language and country.
         NewPipe.init(

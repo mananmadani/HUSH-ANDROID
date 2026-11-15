@@ -356,6 +356,8 @@ fun SongList(
                 add("Add to playlist" to { pickFor = song })
                 if (song.artist.isNotBlank()) add("Go to artist" to { openArtist(song.artist) })
                 add("Share" to { shareSong(context, song.title, song.artist, song.url) })
+                add("Don't play this" to { hideSong(context, song) })
+                if (song.artist.isNotBlank()) add("Don't play this artist" to { hideArtist(context, song.artist) })
                 extraAction?.let { (label, run) -> add(label to { run(song) }) }
             }
             SongRow(

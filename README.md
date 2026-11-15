@@ -18,6 +18,8 @@ and no account. It does one job and leaves everything else out.
   and a player that takes its colours from the cover art. Pick your accent colour in Settings.
 - **Search:** find any song on YouTube Music, with live suggestions (can be switched off),
   recent searches and mood tiles.
+- **Better recommendations, on your phone:** the endless queue follows your last few songs, learns
+  from what you skip, and has "Don't play this" for songs and artists you never want to hear.
 - **Full player:** queue, shuffle, repeat, seek, and an endless "up next" built from related songs.
 - **Background playback:** notification and lock-screen controls (Media3).
 - **Library:** liked songs and your own playlists as clean cards with their covers, stored on your

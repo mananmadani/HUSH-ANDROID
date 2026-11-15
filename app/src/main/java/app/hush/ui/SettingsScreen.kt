@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.hush.HushVm
 import app.hush.Prefs
+import app.hush.Taste
 
 @Composable
 fun SettingsScreen(vm: HushVm, onBack: () -> Unit) {
@@ -106,6 +107,25 @@ fun SettingsScreen(vm: HushVm, onBack: () -> Unit) {
                         }
                     }
                 }
+            }
+        }
+
+        GroupLabel("RECOMMENDATIONS")
+        SettingsCard {
+            SettingRow(
+                "Allow hidden songs again",
+                trailing = if (Taste.blockedCount == 0) "None hidden" else "${Taste.blockedCount} hidden"
+            ) {
+                Taste.resetBlocked()
+                Toast.makeText(context, "Hidden songs and artists cleared", Toast.LENGTH_SHORT).show()
+            }
+            CardDivider()
+            SettingRow(
+                "Forget skip history",
+                trailing = if (Taste.learnedCount == 0) "Nothing learned" else "${Taste.learnedCount} artists"
+            ) {
+                Taste.resetLearning()
+                Toast.makeText(context, "Skip history cleared", Toast.LENGTH_SHORT).show()
             }
         }
 
