@@ -12,8 +12,8 @@ Hush is a free, open-source Android music player. It plays music from YouTube Mu
 
 ## What Hush does
 
-- Home screen with rows for your country and language, plus picks based on songs you liked. These are worked out on the phone.
-- Endless queue that follows your last few songs and learns from songs you skip early.
+- Home screen with rows for your country and language, a "Made for you" row, and a time-of-day row (morning, afternoon, evening or late night picks). They are based on songs you play through, replay or skip, and are worked out on the phone.
+- Daily Mix and endless queue that follow what you really listen to and learn from songs you skip early. "Forget what Hush learned" in Settings clears it.
 - "Don't play this" for any song or artist. Hush then leaves it out of suggestions and queues. It can be undone in Settings.
 - Daily Mix and listening stats (top songs and artists), kept on the phone.
 - Library of liked songs and playlists stored on the device. Back up to and restore from a file, or import a public YouTube or Spotify playlist from its link.
@@ -24,7 +24,7 @@ Hush is a free, open-source Android music player. It plays music from YouTube Mu
 
 - No account, sign-in or Google login.
 - No analytics, ads or crash reporting. Hush has no servers of its own.
-- Likes, playlists, stats and learned taste are stored only on the device. Uninstalling Hush deletes them.
+- Likes, playlists, stats and taste scores are stored only on the device. Uninstalling Hush deletes them.
 - Hush makes two kinds of outside requests: it asks YouTube for songs, and every few hours asks GitHub whether a new version is available. The update check can be switched off in Settings.
 - Full policy: https://github.com/mananmadani/HUSH-ANDROID/blob/main/PRIVACY.md
 
