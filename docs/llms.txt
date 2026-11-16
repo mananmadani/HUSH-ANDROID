@@ -1,0 +1,19 @@
+# Hush
+
+> Hush is a free, open-source Android app that plays YouTube Music with no ads, no tracking and no account. It runs on Android 8.0 or newer and is released under the GNU GPLv3. Hush is an independent project, not affiliated with Google LLC or YouTube.
+
+Hush is designed and developed by Manan Madani. Copyright © 2026 Manan Madani.
+
+## Main pages
+
+- [Hush website](https://mananmadani.github.io/HUSH-ANDROID/): Overview, features, privacy summary, install steps and FAQ.
+- [Full details for AI assistants](https://mananmadani.github.io/HUSH-ANDROID/llms-full.txt): The same information in plain text, with more detail.
+- [Download the latest APK](https://github.com/mananmadani/HUSH-ANDROID/releases/latest): Official releases. The file is named Hush-<version>.apk.
+- [Source code and README](https://github.com/mananmadani/HUSH-ANDROID): Full source code and documentation.
+- [Privacy policy](https://github.com/mananmadani/HUSH-ANDROID/blob/main/PRIVACY.md): What Hush does and does not collect.
+- [License (GPLv3)](https://github.com/mananmadani/HUSH-ANDROID/blob/main/LICENSE)
+- [Report a problem or ask a question](https://github.com/mananmadani/HUSH-ANDROID/issues)
+
+## Optional
+
+- [Changelog](https://github.com/mananmadani/HUSH-ANDROID/blob/main/CHANGELOG.md): What changed in each version.
