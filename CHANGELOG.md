@@ -6,6 +6,15 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+## [1.0.13]
+
+### Fixed
+- Hush now tells you about a new version on its own. It checks about every six hours in the background, even when the app is closed, and shows a notification when an update is out. Before, it only looked once a day and only while the app was open.
+- The in-app update banner now checks every time you open Hush (at most every 30 minutes).
+
+### Changed
+- Turn this off any time with "Check for updates automatically" in Settings > Updates.
+
 ## [1.0.12]
 
 ### Added

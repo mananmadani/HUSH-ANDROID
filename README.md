@@ -25,7 +25,7 @@ and no account. It does one job and leaves everything else out.
 - **Library:** liked songs and your own playlists as clean cards with their covers, stored on your
   device, plus backup and restore to a file you keep.
 - **Daily Mix and listening stats:** a fresh mix each day and your top songs and artists, all worked out on your phone.
-- **Search inside playlists** and an **update check** (on by default, can be turned off).
+- **Search inside playlists** and an **update check** that notifies you of new versions (on by default, can be turned off).
 - **Artists, albums and playlists:** search them, open their pages, play them or save them to your library.
 - **Import playlists:** bring in a public YouTube or Spotify playlist from its link.
 - **Light and dark themes** with seven accent colours.

@@ -87,6 +87,12 @@ object Prefs {
         sp.edit().putLong("last_update_check", System.currentTimeMillis()).apply()
     }
 
+    fun notifiedTag(): String = sp.getString("notified_update", "") ?: ""
+
+    fun markNotified(tag: String) {
+        sp.edit().putString("notified_update", tag).apply()
+    }
+
     fun dismissedTag(): String = sp.getString("dismissed_update", "") ?: ""
 
     fun dismissTag(tag: String) {

@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.hush.HushVm
 import app.hush.Prefs
+import app.hush.net.UpdateWorker
 import app.hush.Taste
 
 @Composable
@@ -144,7 +145,10 @@ fun SettingsScreen(vm: HushVm, onBack: () -> Unit) {
 
         GroupLabel("UPDATES")
         SettingsCard {
-            SwitchRow("Check for updates automatically", null, Prefs.autoUpdate) { Prefs.enableAutoUpdate(it) }
+            SwitchRow("Check for updates automatically", "Hush tells you when a new version is out", Prefs.autoUpdate) {
+                Prefs.enableAutoUpdate(it)
+                UpdateWorker.schedule(context, it)
+            }
             CardDivider()
             SettingRow(
                 "Check for updates now",

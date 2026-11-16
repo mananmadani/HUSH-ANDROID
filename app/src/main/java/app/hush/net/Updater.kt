@@ -10,8 +10,8 @@ import java.util.concurrent.TimeUnit
 
 /**
  * Asks GitHub whether a newer Hush release exists. It sends nothing about you or your phone,
- * only the plain request any browser would make. It runs only if you switch it on or tap
- * "Check for updates now" in Settings.
+ * only the plain request any browser would make. It runs when the app opens and about every six hours in the
+ * background while "Check for updates automatically" is on, or when you tap "Check for updates now".
  */
 object Updater {
 

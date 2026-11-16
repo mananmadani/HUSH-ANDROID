@@ -96,7 +96,7 @@ class HushVm(app: Application) : AndroidViewModel(app) {
 
     init {
         loadHome()
-        if (Prefs.autoUpdate && System.currentTimeMillis() - Prefs.lastCheckAt() > 24L * 60 * 60 * 1000) {
+        if (Prefs.autoUpdate && System.currentTimeMillis() - Prefs.lastCheckAt() > 30L * 60 * 1000) {
             checkForUpdate(manual = false)
         }
     }

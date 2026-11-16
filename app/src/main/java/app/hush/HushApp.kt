@@ -4,6 +4,7 @@ import android.app.Application
 import app.hush.data.HushDb
 import app.hush.data.Repo
 import app.hush.net.HushDownloader
+import app.hush.net.UpdateWorker
 import app.hush.player.PlayerController
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -28,6 +29,7 @@ class HushApp : Application() {
         Prefs.init(this)
         Stats.init(this)
         Taste.init(this)
+        UpdateWorker.schedule(this, Prefs.autoUpdate)
 
         // Ask YouTube Music in the phone's own language and country.
         NewPipe.init(
