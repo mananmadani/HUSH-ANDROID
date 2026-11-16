@@ -29,6 +29,7 @@ class HushApp : Application() {
         Prefs.init(this)
         Stats.init(this)
         Taste.init(this)
+        Affinity.init(this)
         UpdateWorker.schedule(this, Prefs.autoUpdate)
 
         // Ask YouTube Music in the phone's own language and country.
@@ -47,6 +48,7 @@ class HushApp : Application() {
                 io.launch {
                     repo.recordPlay(song)
                     Stats.recordPlay(song)
+                    Affinity.recordStart(song)
                 }
             },
             onTick = { Stats.tick(it) }

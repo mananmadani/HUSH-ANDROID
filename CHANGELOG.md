@@ -6,6 +6,17 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+## [1.0.14]
+
+### Added
+- **Recommendations based on what you really listen to.** Hush gives each song and artist a taste score on your phone: playing a song through or replaying it raises it, skipping it early lowers it, and old listening fades over time.
+- A **Made for you** row on Home, built from songs related to the ones you play most, with artists you listen to most first.
+- A time-of-day row on Home ("Your morning picks", "Your afternoon picks", "Your evening picks" or "Your late-night picks") with the songs you often play at that time of day.
+
+### Changed
+- The Daily Mix and the endless queue now use your listening, not only your likes.
+- "Forget skip history" in Settings is now "Forget what Hush learned" and clears both skips and listening scores.
+
 ## [1.0.13]
 
 ### Fixed

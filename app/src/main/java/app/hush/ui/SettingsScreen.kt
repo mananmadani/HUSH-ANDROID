@@ -38,6 +38,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import app.hush.Affinity
 import app.hush.HushVm
 import app.hush.Prefs
 import app.hush.net.UpdateWorker
@@ -122,11 +123,12 @@ fun SettingsScreen(vm: HushVm, onBack: () -> Unit) {
             }
             CardDivider()
             SettingRow(
-                "Forget skip history",
-                trailing = if (Taste.learnedCount == 0) "Nothing learned" else "${Taste.learnedCount} artists"
+                "Forget what Hush learned",
+                trailing = if (Taste.learnedCount == 0 && !Affinity.hasTaste()) "Nothing learned" else "Skips and listening"
             ) {
                 Taste.resetLearning()
-                Toast.makeText(context, "Skip history cleared", Toast.LENGTH_SHORT).show()
+                Affinity.reset()
+                Toast.makeText(context, "Learned taste cleared", Toast.LENGTH_SHORT).show()
             }
         }
 

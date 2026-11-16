@@ -10,6 +10,7 @@ import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import app.hush.data.SongEntity
+import app.hush.Affinity
 import app.hush.Taste
 import app.hush.net.YtMusic
 import kotlinx.coroutines.CoroutineScope
@@ -213,6 +214,7 @@ class PlayerController(
                 val fresh = Taste.filterSuggestions(merged)
                     .distinctBy { it.url }
                     .filter { it.url !in existing }
+                    .sortedByDescending { if (Affinity.artistScore(it.artist) > 0.5) 1 else 0 }
                     .take(20)
                 if (fresh.isNotEmpty()) ctl.addMediaItems(spreadArtists(fresh, lastArtist).map(::toItem))
             }
@@ -240,14 +242,25 @@ class PlayerController(
     private fun learnFrom(newId: String, reason: Int) {
         val old = _state.value
         val oldId = old.mediaId ?: return
-        if (oldId == newId || old.artist.isBlank()) return
+        val song = old.asSong()
+        if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT) {
+            if (song != null) Affinity.replayed(song)
+            return
+        }
+        if (oldId == newId || old.artist.isBlank() || song == null) return
         when (reason) {
-            Player.MEDIA_ITEM_TRANSITION_REASON_AUTO -> Taste.recordFinish(old.artist)
+            Player.MEDIA_ITEM_TRANSITION_REASON_AUTO -> {
+                Taste.recordFinish(old.artist)
+                Affinity.finished(song)
+            }
             Player.MEDIA_ITEM_TRANSITION_REASON_SEEK -> {
                 if (ignoreNextSkip) {
                     ignoreNextSkip = false
                 } else if (old.positionMs < SKIP_WITHIN_MS && old.durationMs > MIN_SONG_MS) {
                     Taste.recordSkip(old.artist)
+                    Affinity.skipped(song)
+                } else if (old.durationMs > MIN_SONG_MS && old.positionMs > old.durationMs / 2) {
+                    Affinity.partlyPlayed(song)
                 }
             }
         }

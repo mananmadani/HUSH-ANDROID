@@ -18,6 +18,9 @@ Hush is built to collect nothing.
   sent until you press search.
 - **Listening stats.** Hush counts your plays and listening time on the device so it can show your
   top songs and artists. They are never uploaded and are not included in backups. Reset them any time.
+- **Taste scores.** To recommend music, Hush keeps a score for songs and artists you play (played
+  through, replayed or skipped) and the time of day you play them. They stay on the phone, are never
+  uploaded and are not included in backups. "Forget what Hush learned" in Settings clears them.
 - **Daily Mix.** The mix is built on the phone. Like the "Because you liked ..." rows, it asks YouTube for
   songs related to a few of your songs.
 - **Update check.** On by default (switch it off in Settings). When the app opens, about every six hours in the background (so you hear about a new version even if you never open Hush), or when you tap

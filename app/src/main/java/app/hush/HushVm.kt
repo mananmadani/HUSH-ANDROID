@@ -142,14 +142,17 @@ class HushVm(app: Application) : AndroidViewModel(app) {
      */
     private fun buildDailyMix(liked: List<SongEntity>, recent: List<SongEntity>) {
         mixJob?.cancel()
-        val pool = Taste.filterBlocked((liked + recent).distinctBy { it.url })
+        val loved = Affinity.topSongs(30)
+        val pool = Taste.filterBlocked((loved + liked + recent).distinctBy { it.url })
         if (pool.isEmpty()) {
             dailyMix = emptyList()
             return
         }
         mixJob = viewModelScope.launch {
             val rnd = kotlin.random.Random(System.currentTimeMillis() / 86_400_000L)
-            val seeds = pool.filter { !Taste.isSkippedOften(it.artist) }.ifEmpty { pool }.shuffled(rnd).take(4)
+            val lovedSeeds = Taste.filterBlocked(loved).shuffled(rnd).take(3)
+            val seeds = (lovedSeeds + pool.filter { !Taste.isSkippedOften(it.artist) }.ifEmpty { pool }.shuffled(rnd))
+                .distinctBy { it.url }.take(4)
             val related = coroutineScope {
                 seeds.map { s ->
                     async { runCatching { YtMusic.related(s.url) }.getOrDefault(emptyList()) }
@@ -183,7 +186,33 @@ class HushVm(app: Application) : AndroidViewModel(app) {
             val recentSongs = runCatching { repo.recent().first() }.getOrDefault(emptyList())
             buildDailyMix(likedSongs, recentSongs)
 
+            val topSongs = Taste.filterBlocked(Affinity.topSongs(6))
+            val bucket = Affinity.bucketNow()
+            val dayPicks = Taste.filterBlocked(Affinity.forTimeOfDay(bucket, 15))
+            val knownUrls = (likedUrls + topSongs.map { it.url }).toSet()
+
             val sources = buildList {
+                if (topSongs.size >= 3) {
+                    add(
+                        ShelfSource("Made for you") {
+                            val seeds = topSongs.take(5)
+                            val lists = coroutineScope {
+                                seeds.map { seed ->
+                                    async { runCatching { YtMusic.related(seed.url) }.getOrDefault(emptyList()) }
+                                }.awaitAll()
+                            }
+                            // Songs by artists you listen to most come first.
+                            Taste.filterSuggestions(lists.flatten())
+                                .filter { it.url !in knownUrls }
+                                .distinctBy { it.url }
+                                .sortedByDescending { Affinity.artistScore(it.artist) }
+                                .take(25)
+                        }
+                    )
+                }
+                if (dayPicks.size >= 4) {
+                    add(ShelfSource(Affinity.bucketTitle(bucket)) { dayPicks })
+                }
                 picks.forEach { song ->
                     add(
                         ShelfSource("Because you liked ${song.title}") {
