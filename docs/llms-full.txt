@@ -25,7 +25,7 @@ Hush is a free, open-source Android music player. It plays music from YouTube Mu
 - No account, sign-in or Google login.
 - No analytics, ads or crash reporting. Hush has no servers of its own.
 - Likes, playlists, stats and learned taste are stored only on the device. Uninstalling Hush deletes them.
-- Hush makes two kinds of outside requests: it asks YouTube for songs, and about once a day asks GitHub whether a new version is available. The update check can be switched off in Settings.
+- Hush makes two kinds of outside requests: it asks YouTube for songs, and every few hours asks GitHub whether a new version is available. The update check can be switched off in Settings.
 - Full policy: https://github.com/mananmadani/HUSH-ANDROID/blob/main/PRIVACY.md
 
 ## How to install
