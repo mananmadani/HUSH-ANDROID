@@ -108,6 +108,16 @@ class HushVm(app: Application) : AndroidViewModel(app) {
         app.packageManager.getPackageInfo(app.packageName, 0).versionName
     }.getOrNull().orEmpty()
 
+    private var lastOpenCheck = 0L
+
+    /** Called whenever the app comes to the front. */
+    fun checkUpdateOnOpen() {
+        val now = System.currentTimeMillis()
+        if (!Prefs.autoUpdate || now - lastOpenCheck < 10L * 60 * 1000) return
+        lastOpenCheck = now
+        checkForUpdate(manual = false)
+    }
+
     /** Ask GitHub for the newest release. [done] is only called for a manual check. */
     fun checkForUpdate(manual: Boolean, done: (String) -> Unit = {}) {
         if (checkingUpdate) return

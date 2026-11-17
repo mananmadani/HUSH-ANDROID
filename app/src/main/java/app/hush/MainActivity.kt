@@ -34,6 +34,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
@@ -67,6 +68,12 @@ class MainActivity : ComponentActivity() {
 
     private val notificationPermission =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
+
+    /** Every time Hush comes to the front, look for a new version (at most every 10 minutes). */
+    override fun onStart() {
+        super.onStart()
+        ViewModelProvider(this)[HushVm::class.java].checkUpdateOnOpen()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

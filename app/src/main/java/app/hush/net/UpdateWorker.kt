@@ -24,7 +24,7 @@ import app.hush.R
 import java.util.concurrent.TimeUnit
 
 /**
- * Checks GitHub for a new Hush release in the background a few times a day, even when the app is
+ * Checks GitHub for a new Hush release in the background every few hours, even when the app is
  * closed, and shows one notification when a newer version is out. It sends nothing about you or
  * your phone. Switch it off with "Check for updates automatically" in Settings.
  */
@@ -34,7 +34,6 @@ class UpdateWorker(context: Context, params: WorkerParameters) : CoroutineWorker
         if (!Prefs.autoUpdate) return Result.success()
         return try {
             val release = Updater.latest()
-            Prefs.markChecked()
             val current = currentVersion(applicationContext)
             if (Updater.isNewer(release.tag, current) && Prefs.notifiedTag() != release.tag) {
                 if (notify(applicationContext, release)) Prefs.markNotified(release.tag)
@@ -62,10 +61,10 @@ class UpdateWorker(context: Context, params: WorkerParameters) : CoroutineWorker
                 wm.cancelUniqueWork(WORK_NAME)
                 return
             }
-            val request = PeriodicWorkRequestBuilder<UpdateWorker>(6, TimeUnit.HOURS)
+            val request = PeriodicWorkRequestBuilder<UpdateWorker>(3, TimeUnit.HOURS)
                 .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build())
                 .build()
-            wm.enqueueUniquePeriodicWork(WORK_NAME, ExistingPeriodicWorkPolicy.KEEP, request)
+            wm.enqueueUniquePeriodicWork(WORK_NAME, ExistingPeriodicWorkPolicy.UPDATE, request)
         }
 
         private fun notify(context: Context, release: Updater.Release): Boolean {

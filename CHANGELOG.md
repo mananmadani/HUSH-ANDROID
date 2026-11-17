@@ -6,6 +6,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+## [1.0.15]
+
+### Fixed
+- Songs that stayed stuck at 0:00 and would not play. YouTube changed how it hands out audio links, so Hush's music engine (NewPipe Extractor) is updated from 0.26.5 to 0.27.1.
+- Update alerts arrive sooner. Hush now looks for a new version every time you bring the app to the front (at most every 10 minutes), not only when it starts from scratch, and the background check runs about every 3 hours instead of 6.
+
 ## [1.0.14]
 
 ### Added
