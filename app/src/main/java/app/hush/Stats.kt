@@ -9,7 +9,7 @@ import java.util.Date
 import java.util.Locale
 
 /**
- * Listening stats, kept only on this phone (never uploaded, not part of backups).
+ * Listening stats, kept only on this phone (never uploaded, but included in your password-locked backup).
  * Plays are counted per month, so "This month" and "All time" can both be shown.
  */
 object Stats {

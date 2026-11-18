@@ -13,7 +13,10 @@ import app.hush.net.CollectionItem
 import app.hush.net.Spotify
 import app.hush.net.Updater
 import app.hush.net.YtMusic
+import app.hush.data.BackupCrypto
 import java.io.IOException
+import java.security.GeneralSecurityException
+import org.json.JSONObject
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -461,30 +464,61 @@ class HushVm(app: Application) : AndroidViewModel(app) {
 
     // --- Backup and restore --------------------------------------------------------------
 
-    fun exportBackup(uri: Uri, done: (String) -> Unit) {
+    /** Saves everything (library, taste, stats, settings) to [uri], locked with [password]. */
+    fun exportBackup(uri: Uri, password: String, done: (String) -> Unit) {
         viewModelScope.launch {
             val message = withContext(Dispatchers.IO) {
                 runCatching {
-                    val json = repo.exportBackup()
-                    getApplication<Application>().contentResolver.openOutputStream(uri, "wt")!!
-                        .use { it.write(json.toByteArray(Charsets.UTF_8)) }
-                    "Backup saved"
+                    val app = getApplication<Application>()
+                    val root = JSONObject(repo.exportBackup())
+                    root.put("stores", BackupExtras.dump(app))
+                    val locked = BackupCrypto.encrypt(root.toString().toByteArray(Charsets.UTF_8), password.toCharArray())
+                    app.contentResolver.openOutputStream(uri, "wt")!!.use { it.write(locked) }
+                    "Backup saved and locked with your password"
                 }.getOrElse { "Couldn't save the backup" }
             }
             done(message)
         }
     }
 
-    fun importBackup(uri: Uri, done: (String) -> Unit) {
+    /**
+     * Restores a backup. For a locked file, [password] is needed: with none, [NEEDS_PASSWORD] comes back
+     * so the screen can ask. Older backups (plain files from before v1.0.16) still restore.
+     */
+    fun importBackup(uri: Uri, password: String?, done: (String) -> Unit) {
         viewModelScope.launch {
             val message = withContext(Dispatchers.IO) {
-                runCatching {
-                    val json = getApplication<Application>().contentResolver.openInputStream(uri)!!
-                        .use { it.readBytes().toString(Charsets.UTF_8) }
-                    repo.importBackup(json)
-                }.getOrElse { "That file isn't a Hush backup" }
+                val app = getApplication<Application>()
+                val bytes = try {
+                    app.contentResolver.openInputStream(uri)!!.use { it.readBytes() }
+                } catch (e: Exception) {
+                    return@withContext "Couldn't open that file"
+                }
+                val json = if (BackupCrypto.isEncrypted(bytes)) {
+                    if (password == null) return@withContext NEEDS_PASSWORD
+                    try {
+                        BackupCrypto.decrypt(bytes, password.toCharArray()).toString(Charsets.UTF_8)
+                    } catch (e: GeneralSecurityException) {
+                        return@withContext WRONG_PASSWORD
+                    }
+                } else {
+                    bytes.toString(Charsets.UTF_8)
+                }
+                try {
+                    val summary = repo.importBackup(json)
+                    val stores = JSONObject(json).optJSONObject("stores")
+                    val extras = withContext(Dispatchers.Main) { BackupExtras.restore(app, stores) }
+                    if (extras) "$summary, plus your taste, stats and settings" else summary
+                } catch (e: Exception) {
+                    "That file isn't a Hush backup"
+                }
             }
             done(message)
         }
+    }
+
+    companion object {
+        const val NEEDS_PASSWORD = "needs-password"
+        const val WRONG_PASSWORD = "Wrong password, or the backup is damaged"
     }
 }

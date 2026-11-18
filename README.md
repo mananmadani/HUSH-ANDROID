@@ -24,7 +24,8 @@ and no account. It does one job and leaves everything else out.
 - **Full player:** queue, shuffle, repeat, seek, and an endless "up next" built from related songs.
 - **Background playback:** notification and lock-screen controls (Media3).
 - **Library:** liked songs and your own playlists as clean cards with their covers, stored on your
-  device, plus backup and restore to a file you keep.
+  device, plus backup and restore to a file you keep. A backup holds everything (library, taste, stats and
+  settings) and is locked with your password using AES-256, so a new phone keeps your recommendations.
 - **Daily Mix and listening stats:** a fresh mix each day and your top songs and artists, all worked out on your phone.
 - **Search inside playlists** and an **update check** that notifies you of new versions (on by default, can be turned off).
 - **Artists, albums and playlists:** search them, open their pages, play them or save them to your library.

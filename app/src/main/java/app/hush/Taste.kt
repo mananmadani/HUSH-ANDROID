@@ -9,8 +9,8 @@ import app.hush.data.SongEntity
 import org.json.JSONObject
 
 /**
- * What Hush has learned about your taste, kept only on this phone (never uploaded, and not part
- * of backups).
+ * What Hush has learned about your taste, kept only on this phone (never uploaded, but included in your
+ * password-locked backup).
  *
  * Two things live here:
  *  - songs and artists you chose "Don't play this" for, and

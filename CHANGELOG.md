@@ -6,6 +6,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+## [1.0.16]
+
+### Added
+- **Backups now hold everything.** Besides liked songs and playlists, a backup includes recently played songs, what Hush learned about your taste (skips, "Don't play this" and listening scores), your listening stats and your settings (theme, accent colour and the switches). Moving to a new phone keeps your recommendations.
+- **Backups are locked with a password.** Each backup is encrypted with AES-256 (GCM), and the key comes from your password with PBKDF2-SHA256. Hush can't recover a forgotten password.
+
+### Changed
+- Backup files are now saved as `Hush-backup.hush`. Older plain `.json` backups can still be restored.
+- Restoring adds the backup's songs and playlists to the library. Taste, stats and settings in the backup replace the ones on the phone, which suits a new phone.
+
 ## [1.0.15]
 
 ### Fixed

@@ -9,7 +9,7 @@ import java.util.Calendar
 import kotlin.math.pow
 
 /**
- * What you really listen to, kept only on this phone (never uploaded, not part of backups).
+ * What you really listen to, kept only on this phone (never uploaded, but included in your password-locked backup).
  *
  * Every song and artist gets a taste score. Playing a song all the way through, or replaying it,
  * raises the score. Skipping it in the first seconds lowers it. Old listening fades with time

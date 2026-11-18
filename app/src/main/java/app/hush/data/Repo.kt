@@ -58,17 +58,20 @@ class Repo(private val dao: HushDao) {
         dao.removeFromPlaylist(playlistId, url)
 
     // --- Backup and restore --------------------------------------------------------------
-    // A plain JSON file the person keeps. Liked songs and playlists only (not play history).
+    // The library part of a backup: liked songs, playlists and recently played. The rest (taste, stats and
+    // settings) is added by BackupExtras, and the whole file is locked with a password by BackupCrypto.
 
     suspend fun exportBackup(): String {
         val songs = dao.allSongs().associateBy { it.url }
         val liked = dao.allLiked()
         val playlists = dao.allPlaylists()
         val items = dao.allPlaylistItems().groupBy { it.playlistId }
+        val history = dao.allHistory()
 
         val needed = LinkedHashSet<String>()
         liked.forEach { needed.add(it.url) }
         items.values.flatten().forEach { needed.add(it.url) }
+        history.forEach { needed.add(it.url) }
 
         val songArray = JSONArray()
         needed.mapNotNull { songs[it] }.forEach { s ->
@@ -94,13 +97,17 @@ class Repo(private val dao: HushDao) {
             playlistArray.put(JSONObject().put("name", p.name).put("items", itemArray))
         }
 
+        val historyArray = JSONArray()
+        history.forEach { historyArray.put(JSONObject().put("url", it.url).put("at", it.at)) }
+
         return JSONObject()
             .put("app", "Hush")
-            .put("version", 1)
+            .put("version", 2)
             .put("songs", songArray)
             .put("liked", likedArray)
             .put("playlists", playlistArray)
-            .toString(2)
+            .put("history", historyArray)
+            .toString()
     }
 
     /** Merges a backup into the library. Returns a short summary for the person. */
@@ -141,6 +148,13 @@ class Repo(private val dao: HushDao) {
                 )
             }
         }
+
+        val history = root.optJSONArray("history") ?: JSONArray()
+        for (i in 0 until history.length()) {
+            val o = history.getJSONObject(i)
+            dao.addHistory(HistoryEntity(o.getString("url"), o.optLong("at", System.currentTimeMillis())))
+        }
+        dao.trimHistory()
 
         return "Restored ${songs.length()} songs and ${playlists.length()} playlists"
     }

@@ -119,6 +119,9 @@ interface HushDao {
     @Query("SELECT * FROM liked")
     suspend fun allLiked(): List<LikedEntity>
 
+    @Query("SELECT * FROM history")
+    suspend fun allHistory(): List<HistoryEntity>
+
     @Query("SELECT * FROM playlists")
     suspend fun allPlaylists(): List<PlaylistEntity>
 

@@ -319,12 +319,27 @@ fun LibraryScreen(
     var creating by remember { mutableStateOf(false) }
     var importing by remember { mutableStateOf(false) }
 
+    // Backup: ask for a password first, then pick where to save. Restore: pick the file, and ask for
+    // the password only if the file is locked.
+    var askBackupPassword by remember { mutableStateOf(false) }
+    var backupPassword by remember { mutableStateOf("") }
+    var restoreUri by remember { mutableStateOf<android.net.Uri?>(null) }
+
     val export = rememberLauncherForActivityResult(
-        ActivityResultContracts.CreateDocument("application/json")
-    ) { uri -> if (uri != null) vm.exportBackup(uri) { toast(context, it) } }
+        ActivityResultContracts.CreateDocument("application/octet-stream")
+    ) { uri ->
+        if (uri != null) vm.exportBackup(uri, backupPassword) { toast(context, it) }
+        backupPassword = ""
+    }
     val import = rememberLauncherForActivityResult(
         ActivityResultContracts.OpenDocument()
-    ) { uri -> if (uri != null) vm.importBackup(uri) { toast(context, it) } }
+    ) { uri ->
+        if (uri != null) {
+            vm.importBackup(uri, null) { message ->
+                if (message == HushVm.NEEDS_PASSWORD) restoreUri = uri else toast(context, message)
+            }
+        }
+    }
 
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 190.dp)) {
         item { ScreenTitle("Library", Modifier.padding(start = 24.dp, end = 20.dp, top = 16.dp, bottom = 16.dp)) }
@@ -398,14 +413,14 @@ fun LibraryScreen(
                 CardDivider()
                 LibraryRow(
                     title = "Back up library",
-                    subtitle = "Save likes and playlists to a file",
+                    subtitle = "Everything, locked with a password",
                     leading = { IconTile(Icons.Filled.Upload, 40.dp, 12.dp) },
-                    onClick = { export.launch("hush-backup.json") }
+                    onClick = { askBackupPassword = true }
                 )
                 CardDivider()
                 LibraryRow(
                     title = "Restore from backup",
-                    subtitle = "Add likes and playlists from a file",
+                    subtitle = "Likes, playlists, taste and settings",
                     leading = { IconTile(Icons.Filled.Download, 40.dp, 12.dp) },
                     onClick = { import.launch(arrayOf("*/*")) }
                 )
@@ -415,6 +430,35 @@ fun LibraryScreen(
 
     if (importing) {
         ImportDialog(vm) { importing = false }
+    }
+    if (askBackupPassword) {
+        PasswordDialog(
+            title = "Lock your backup",
+            message = "Choose a password. Hush can't recover it, and without it the backup can't be opened, so keep it somewhere safe.",
+            confirmField = true,
+            confirmLabel = "Continue",
+            onDismiss = { askBackupPassword = false },
+            onDone = { password ->
+                backupPassword = password
+                askBackupPassword = false
+                export.launch("Hush-backup.hush")
+            }
+        )
+    }
+    restoreUri?.let { uri ->
+        PasswordDialog(
+            title = "Backup password",
+            message = "This backup is locked. Enter the password you chose when you saved it.",
+            confirmField = false,
+            confirmLabel = "Restore",
+            onDismiss = { restoreUri = null },
+            onDone = { password ->
+                vm.importBackup(uri, password) { message ->
+                    toast(context, message)
+                    if (message != HushVm.WRONG_PASSWORD) restoreUri = null
+                }
+            }
+        )
     }
     if (creating) {
         NamePlaylistDialog(
@@ -470,6 +514,68 @@ private fun ImportDialog(vm: HushVm, onClose: () -> Unit) {
             ) { Text("Import") }
         },
         dismissButton = { TextButton(enabled = !busy, onClick = onClose) { Text("Cancel") } }
+    )
+}
+
+/** Asks for a backup password. With [confirmField] it asks twice and needs at least 8 characters. */
+@Composable
+private fun PasswordDialog(
+    title: String,
+    message: String,
+    confirmField: Boolean,
+    confirmLabel: String,
+    onDismiss: () -> Unit,
+    onDone: (String) -> Unit
+) {
+    var password by remember { mutableStateOf("") }
+    var again by remember { mutableStateOf("") }
+    val tooShort = confirmField && password.isNotEmpty() && password.length < app.hush.data.BackupCrypto.MIN_PASSWORD
+    val mismatch = confirmField && again.isNotEmpty() && again != password
+    val ready = password.isNotEmpty() &&
+        (!confirmField || (password.length >= app.hush.data.BackupCrypto.MIN_PASSWORD && again == password))
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = Dusk.Surface,
+        title = { Text(title) },
+        text = {
+            Column {
+                Text(message, fontSize = 13.sp, color = Dusk.Muted)
+                OutlinedTextField(
+                    value = password,
+                    onValueChange = { password = it },
+                    singleLine = true,
+                    visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Password),
+                    placeholder = { Text("Password", color = Dusk.Muted) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 12.dp)
+                )
+                if (confirmField) {
+                    OutlinedTextField(
+                        value = again,
+                        onValueChange = { again = it },
+                        singleLine = true,
+                        visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
+                        keyboardOptions = KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Password),
+                        placeholder = { Text("Type it again", color = Dusk.Muted) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp)
+                    )
+                    val hint = when {
+                        tooShort -> "Use at least 8 characters"
+                        mismatch -> "The two passwords don't match"
+                        else -> null
+                    }
+                    if (hint != null) {
+                        Text(hint, fontSize = 12.sp, color = Dusk.Pink, modifier = Modifier.padding(top = 8.dp))
+                    }
+                }
+            }
+        },
+        confirmButton = { TextButton(enabled = ready, onClick = { onDone(password) }) { Text(confirmLabel) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
     )
 }
 

@@ -17,10 +17,10 @@ Hush is built to collect nothing.
   This is the only time unfinished searches leave your phone. Turn it off in Settings and nothing is
   sent until you press search.
 - **Listening stats.** Hush counts your plays and listening time on the device so it can show your
-  top songs and artists. They are never uploaded and are not included in backups. Reset them any time.
+  top songs and artists. They are never uploaded. They are part of your password-locked backup, if you make one. Reset them any time.
 - **Taste scores.** To recommend music, Hush keeps a score for songs and artists you play (played
   through, replayed or skipped) and the time of day you play them. They stay on the phone, are never
-  uploaded and are not included in backups. "Forget what Hush learned" in Settings clears them.
+  uploaded, but they are part of your password-locked backup if you make one. "Forget what Hush learned" in Settings clears them.
 - **Daily Mix.** The mix is built on the phone. Like the "Because you liked ..." rows, it asks YouTube for
   songs related to a few of your songs.
 - **Update check.** On by default (switch it off in Settings). When the app opens, about every three hours in the background (so you hear about a new version even if you never open Hush), or when you tap
@@ -31,8 +31,10 @@ Hush is built to collect nothing.
   is sent unless you start an import.
 - **Widgets.** Home-screen widgets show the song that is playing. They get it from the app on your
   phone and contact nothing.
-- **Backup file.** "Back up library" writes your likes and playlists to a file you choose. Hush never
-  uploads it; where you store it is up to you.
+- **Backup file.** "Back up library" writes everything (your likes, playlists, recently played songs, taste
+  scores, listening stats and settings) to a file you choose, locked with a password you set. The file is
+  encrypted with AES-256, and the key is made from your password on the phone. Hush never uploads it and
+  cannot recover a forgotten password; where you store the file is up to you.
 - **Region and language.** Hush reads your phone's country and language and uses them in its requests
   to YouTube so results feel local. Nothing else about your device is sent.
 - **Network requests.** To search and play music, the app contacts YouTube and Google video hosts
