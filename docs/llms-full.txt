@@ -16,7 +16,7 @@ Hush is a free, open-source Android music player. It plays music from YouTube Mu
 - Daily Mix and endless queue that follow what you really listen to and learn from songs you skip early. "Forget what Hush learned" in Settings clears it.
 - "Don't play this" for any song or artist. Hush then leaves it out of suggestions and queues. It can be undone in Settings.
 - Daily Mix and listening stats (top songs and artists), kept on the phone.
-- Library of liked songs and playlists stored on the device. Back up to and restore from a file, or import a public YouTube or Spotify playlist from its link.
+- Library of liked songs and playlists stored on the device. Back up everything (library, recently played songs, taste scores, listening stats and settings) to a file locked with a password using AES-256, and restore it on a new phone. Hush cannot recover a forgotten password. You can also import a public YouTube or Spotify playlist from its link.
 - Dark and light themes, seven accent colours, and a player that takes its colours from the cover art.
 - Lock-screen controls, home-screen widgets, an editable queue, and a sleep timer (15 to 60 minutes, or end of song).
 
