@@ -1,0 +1,23 @@
+# Gradle / build output
+.gradle/
+build/
+.kotlin/
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+local.properties
+captures/
+
+# Signing material, never commit these
+*.jks
+*.keystore
+keystore.properties
+
+# Built packages
+*.apk
+*.aab
+
+# OS files
+.DS_Store
+Thumbs.db
