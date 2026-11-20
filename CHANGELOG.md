@@ -6,6 +6,15 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+## [1.0.17]
+
+### Added
+- **A clear message when a song won't load.** Instead of staying at 0:00, the player now says "No internet connection" or "Couldn't load this song" with **Retry** and **Skip** buttons.
+- **A "Rediscover" row on Home.** Songs you loved but haven't played for two weeks or more, in a different order each time. It is worked out on your phone from your listening.
+
+### Changed
+- The time-of-day row ("Your morning picks" and so on) now appears much sooner: it needs 3 songs you have listened through at that time of day, instead of 4 songs played twice.
+
 ## [1.0.16]
 
 ### Added

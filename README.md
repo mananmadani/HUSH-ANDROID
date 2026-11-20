@@ -18,7 +18,7 @@ and no account. It does one job and leaves everything else out.
   and a player that takes its colours from the cover art. Pick your accent colour in Settings.
 - **Search:** find any song on YouTube Music, with live suggestions (can be switched off),
   recent searches and mood tiles.
-- **Recommendations from what you listen to, on your phone:** a "Made for you" row and a time-of-day
+- **Recommendations from what you listen to, on your phone:** a "Made for you" row, a "Rediscover" row and a time-of-day
   row on Home, a Daily Mix and an endless queue that follow what you play through, replay or skip,
   and "Don't play this" for songs and artists you never want to hear. Nothing leaves the phone.
 - **Full player:** queue, shuffle, repeat, seek, and an endless "up next" built from related songs.

@@ -73,6 +73,7 @@ import kotlinx.coroutines.withContext
 fun PlayerScreen(vm: HushVm, onClose: () -> Unit) {
     val context = LocalContext.current
     val state by vm.player.state.collectAsState()
+    val playError by vm.player.error.collectAsState()
     val sleep by vm.player.sleep.collectAsState()
     val playlists by vm.playlists.collectAsState()
     val liked by remember(state.mediaId) {
@@ -209,6 +210,21 @@ fun PlayerScreen(vm: HushVm, onClose: () -> Unit) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text(formatTime(shownMs), fontSize = 12.sp, color = Dusk.Muted)
                 Text(formatTime(state.durationMs), fontSize = 12.sp, color = Dusk.Muted)
+            }
+
+            playError?.let { message ->
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(top = 12.dp)
+                        .background(Dusk.Surface, androidx.compose.foundation.shape.RoundedCornerShape(16.dp))
+                        .padding(start = 16.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(message, fontSize = 13.sp, color = Dusk.Text, modifier = Modifier.weight(1f))
+                    androidx.compose.material3.TextButton(onClick = { haptic(Tap.Tick); vm.player.retry() }) { Text("Retry") }
+                    androidx.compose.material3.TextButton(onClick = { haptic(Tap.Tick); vm.player.skipFailed() }) { Text("Skip") }
+                }
             }
 
             Row(

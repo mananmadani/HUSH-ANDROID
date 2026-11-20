@@ -171,6 +171,7 @@ class HushVm(app: Application) : AndroidViewModel(app) {
                     async { runCatching { YtMusic.related(s.url) }.getOrDefault(emptyList()) }
                 }.awaitAll()
             }
+            val rediscover = Taste.filterBlocked(Affinity.rediscover(20))
             val knownUrls = pool.map { it.url }.toSet()
             val fresh = Taste.filterSuggestions(related.flatten()).filter { it.url !in knownUrls }.distinctBy { it.url }
             val familiar = pool.shuffled(rnd).take(8)
@@ -223,7 +224,10 @@ class HushVm(app: Application) : AndroidViewModel(app) {
                         }
                     )
                 }
-                if (dayPicks.size >= 4) {
+                if (rediscover.size >= 4) {
+                    add(ShelfSource("Rediscover") { rediscover })
+                }
+                if (dayPicks.size >= 3) {
                     add(ShelfSource(Affinity.bucketTitle(bucket)) { dayPicks })
                 }
                 picks.forEach { song ->

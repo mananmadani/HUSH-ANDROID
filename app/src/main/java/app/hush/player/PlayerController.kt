@@ -6,6 +6,7 @@ import android.net.Uri
 import androidx.core.content.ContextCompat
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
@@ -85,6 +86,10 @@ class PlayerController(
     private val _queue = MutableStateFlow<List<QueueItem>>(emptyList())
     val queue: StateFlow<List<QueueItem>> = _queue.asStateFlow()
 
+    /** A short, plain message when the current song could not be played, otherwise null. */
+    private val _error = MutableStateFlow<String?>(null)
+    val error: StateFlow<String?> = _error.asStateFlow()
+
     private val _sleep = MutableStateFlow(SleepState())
     val sleep: StateFlow<SleepState> = _sleep.asStateFlow()
     private var sleepJob: Job? = null
@@ -93,7 +98,19 @@ class PlayerController(
     private var ignoreNextSkip = false
 
     private val listener = object : Player.Listener {
+        override fun onPlayerError(error: PlaybackException) {
+            _error.value = when (error.errorCode) {
+                PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED,
+                PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT ->
+                    "No internet connection. Check it and try again."
+                else -> "Couldn't load this song. It may be unavailable right now."
+            }
+        }
+
         override fun onEvents(player: Player, events: Player.Events) {
+            if (player.playbackState == Player.STATE_READY || player.playbackState == Player.STATE_BUFFERING) {
+                _error.value = null
+            }
             if (events.contains(Player.EVENT_TIMELINE_CHANGED)) refreshQueue()
             if (events.contains(Player.EVENT_PLAYBACK_STATE_CHANGED) &&
                 player.playbackState == Player.STATE_ENDED
@@ -107,6 +124,7 @@ class PlayerController(
         override fun onMediaItemTransition(item: MediaItem?, reason: Int) {
             val c = controller ?: return
             if (item == null) return
+            _error.value = null
             learnFrom(item.mediaId, reason)
             onTrackStarted(item.toSong())
 
@@ -317,6 +335,22 @@ class PlayerController(
 
     fun addToQueue(song: SongEntity) = withController { c ->
         if (c.mediaItemCount == 0) play(listOf(song)) else c.addMediaItem(toItem(song))
+    }
+
+    /** Try the current song again after a failure. */
+    fun retry() = withController { c ->
+        _error.value = null
+        c.prepare()
+        c.play()
+    }
+
+    /** Give up on a song that will not load and go on to the next one. */
+    fun skipFailed() = withController { c ->
+        _error.value = null
+        ignoreNextSkip = true
+        if (c.hasNextMediaItem()) c.seekToNextMediaItem()
+        c.prepare()
+        c.play()
     }
 
     fun toggle() = withController { c -> if (c.isPlaying) c.pause() else c.play() }

@@ -27,7 +27,9 @@ object Affinity {
         var thumb: String?,
         var score: Double,
         var at: Long,
-        val parts: IntArray = IntArray(4)
+        val parts: IntArray = IntArray(4),
+        /** When this song last started playing (0 if unknown). */
+        var last: Long = 0L
     )
 
     private class ArtistScore(var score: Double, var at: Long)
@@ -71,6 +73,7 @@ object Affinity {
                 )
                 val p = o.optJSONArray("b")
                 if (p != null) for (k in 0 until minOf(4, p.length())) s.parts[k] = p.optInt(k, 0)
+                s.last = o.optLong("p", 0L)
                 songs[s.url] = s
             }
         }
@@ -100,6 +103,7 @@ object Affinity {
         if (song.url.isBlank() || song.title.isBlank()) return
         val s = touch(song)
         s.parts[bucketNow()] += 1
+        s.last = System.currentTimeMillis()
         save()
     }
 
@@ -150,8 +154,26 @@ object Affinity {
     fun forTimeOfDay(bucket: Int, n: Int): List<SongEntity> {
         val now = System.currentTimeMillis()
         return songs.values
-            .filter { it.parts[bucket] >= 2 && decayed(it.score, it.at, now) > 0.0 }
+            .filter { it.parts[bucket] >= 1 && decayed(it.score, it.at, now) > 0.0 }
             .sortedByDescending { it.parts[bucket] * 10 + decayed(it.score, it.at, now) }
+            .take(n)
+            .map { it.toSong() }
+    }
+
+    /**
+     * Songs you clearly loved (listened through at least once, never skipped away) but have not played for
+     * [minDays] days or more, in a different order each time.
+     */
+    @Synchronized
+    fun rediscover(n: Int, minDays: Int = 14): List<SongEntity> {
+        val now = System.currentTimeMillis()
+        val quiet = minDays * 86_400_000L
+        return songs.values
+            .filter { it.score >= 3.0 }
+            .filter { now - maxOf(it.last, it.at) >= quiet }
+            .sortedByDescending { it.score }
+            .take(n * 2)
+            .shuffled()
             .take(n)
             .map { it.toSong() }
     }
@@ -191,7 +213,7 @@ object Affinity {
         songs.values.forEach { s ->
             arr.put(
                 JSONObject().put("u", s.url).put("t", s.title).put("a", s.artist).put("i", s.thumb ?: "")
-                    .put("s", s.score).put("w", s.at).put("b", JSONArray(s.parts.toList()))
+                    .put("s", s.score).put("w", s.at).put("p", s.last).put("b", JSONArray(s.parts.toList()))
             )
         }
         val root = JSONObject()
