@@ -24,6 +24,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Slider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
@@ -140,6 +141,10 @@ fun SettingsScreen(vm: HushVm, onBack: () -> Unit) {
             CardDivider()
             SwitchRow("Haptic feedback", "Vibrate on taps", Prefs.haptics) { Prefs.enableHaptics(it) }
             CardDivider()
+            SwitchRow("Glass motion", "Glass shimmers as you tilt the phone", Prefs.glassMotion) { Prefs.enableGlassMotion(it) }
+            CardDivider()
+            GlassSliderRow()
+            CardDivider()
             SettingRow("Clear listening history") { vm.clearHistory() }
             CardDivider()
             SettingRow("Clear recent searches") { vm.clearRecentSearches() }
@@ -220,9 +225,7 @@ fun SettingsCard(content: @Composable ColumnScope.() -> Unit) {
         Modifier
             .padding(horizontal = 16.dp)
             .fillMaxWidth()
-            .clip(shape)
-            .background(Dusk.Raised)
-            .border(1.dp, Dusk.Line, shape),
+            .liquidGlass(shape),
         content = content
     )
 }
@@ -299,5 +302,28 @@ private fun SettingRow(
                 modifier = Modifier.size(20.dp)
             )
         }
+    }
+}
+
+/** The glass transparency slider: frosted on the left, clear on the right. */
+@Composable
+private fun GlassSliderRow() {
+    Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text("Glass transparency", fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                Text("Frosted on the left, clear on the right", fontSize = 12.sp, color = Dusk.Muted)
+            }
+            Text("${(Prefs.glassClarity * 100).toInt()}%", fontSize = 13.sp, color = Dusk.Muted)
+        }
+        Slider(
+            value = Prefs.glassClarity,
+            onValueChange = { Prefs.setGlassClarity(it) },
+            colors = androidx.compose.material3.SliderDefaults.colors(
+                thumbColor = Dusk.Text,
+                activeTrackColor = MaterialTheme.colorScheme.primary,
+                inactiveTrackColor = Dusk.Text.copy(alpha = 0.2f)
+            )
+        )
     }
 }

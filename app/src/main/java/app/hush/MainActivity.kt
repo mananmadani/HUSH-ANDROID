@@ -30,8 +30,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import app.hush.ui.glassSource
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Brush
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
@@ -101,7 +104,7 @@ class MainActivity : ComponentActivity() {
             }
             HushTheme {
                 // Without this, plain Text falls back to black on our dark background.
-                CompositionLocalProvider(LocalContentColor provides Dusk.Text) { HushRoot() }
+                CompositionLocalProvider(LocalContentColor provides Dusk.Text) { app.hush.ui.ProvideGlassMotion { HushRoot() } }
             }
         }
     }
@@ -130,11 +133,35 @@ private fun HushRoot(vm: HushVm = viewModel()) {
     val onTab = route in TAB_ROUTES
     val player by vm.player.state.collectAsState()
     val accent = MaterialTheme.colorScheme.primary
+    val tilt = app.hush.ui.LocalGlassTilt.current
+    val backdrop = remember { app.hush.ui.GlassBackdrop() }
 
+    Box(Modifier.fillMaxSize()) {
     Box(
         Modifier
             .fillMaxSize()
+            .glassSource(backdrop)
             .background(Dusk.Bg)
+            .drawBehind {
+                // Soft colour pools behind everything, so the glass has something to catch.
+                // They drift a little as the phone tilts.
+                val dx = tilt.x * 70.dp.toPx()
+                val dy = tilt.y * 70.dp.toPx()
+                drawRect(
+                    Brush.radialGradient(
+                        listOf(Dusk.Pink.copy(alpha = 0.13f), androidx.compose.ui.graphics.Color.Transparent),
+                        center = androidx.compose.ui.geometry.Offset(size.width * 0.95f + dx, size.height * 0.6f + dy),
+                        radius = size.width * 0.8f
+                    )
+                )
+                drawRect(
+                    Brush.radialGradient(
+                        listOf(accent.copy(alpha = 0.12f), androidx.compose.ui.graphics.Color.Transparent),
+                        center = androidx.compose.ui.geometry.Offset(size.width * 0.05f - dx, size.height * 0.92f - dy),
+                        radius = size.width * 0.85f
+                    )
+                )
+            }
             .background(
                 Brush.radialGradient(
                     listOf(accent.copy(alpha = 0.16f), androidx.compose.ui.graphics.Color.Transparent),
@@ -222,8 +249,10 @@ private fun HushRoot(vm: HushVm = viewModel()) {
             ) { PlayerScreen(vm, onClose = { nav.popBackStack() }) }
         }
         }
+    }
 
         if (!inPlayer) {
+          CompositionLocalProvider(app.hush.ui.LocalGlassBackdrop provides backdrop) {
             Column(
                 Modifier
                     .align(Alignment.BottomCenter)
@@ -251,6 +280,7 @@ private fun HushRoot(vm: HushVm = viewModel()) {
                     )
                 }
             }
+          }
         }
     }
 }

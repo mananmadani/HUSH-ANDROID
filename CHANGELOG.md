@@ -6,6 +6,17 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+## [1.0.18]
+
+### Changed
+- **A new look: liquid glass.** Buttons, chips, the Home/Search/Library bar, the mini player, the main play button and the settings and stats cards are now frosted glass with a bright rim. Every button is still in the same place.
+- **Glass that moves.** The shine and the glass edge slide as you tilt your phone, glass swells like a drop of liquid under your finger, the cover on Now Playing tilts slightly with the phone, and soft colour pools behind the screens drift with it.
+
+### Added
+- **Real frosted glass.** On Android 12 and newer, the bottom bar and mini player blur and brighten whatever scrolls behind them, like Apple's liquid glass. On older phones they stay see-through without the blur.
+- **Settings > Privacy and feel > Glass transparency** slider: frosted on the left, clear on the right. Everything changes live as you move it.
+- **Settings > Privacy and feel > Glass motion** turns the tilt effect off. It reads the phone's motion sensor only while Hush is open, and nothing is stored or sent.
+
 ## [1.0.17]
 
 ### Added

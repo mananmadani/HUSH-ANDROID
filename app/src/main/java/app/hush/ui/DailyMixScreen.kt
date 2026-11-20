@@ -82,9 +82,7 @@ fun DailyMixScreen(vm: HushVm, onBack: () -> Unit) {
                             Row(
                                 Modifier
                                     .height(46.dp)
-                                    .clip(pill)
-                                    .background(Dusk.Raised)
-                                    .border(1.dp, Dusk.Line, pill)
+                                    .liquidGlass(pill, interactive = true)
                                     .clickable { haptic(Tap.Click); vm.player.play(songs, 0, shuffle = true) }
                                     .padding(horizontal = 22.dp),
                                 verticalAlignment = Alignment.CenterVertically

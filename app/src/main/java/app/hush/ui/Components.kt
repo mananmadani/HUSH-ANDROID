@@ -237,9 +237,7 @@ fun RoundIconButton(
     Box(
         modifier
             .size(44.dp)
-            .clip(CircleShape)
-            .background(Dusk.Raised)
-            .border(1.dp, Dusk.Line, CircleShape)
+            .liquidGlass(CircleShape, interactive = true)
             .clickable(onClickLabel = description) { haptic(Tap.Tick); onClick() },
         contentAlignment = Alignment.Center
     ) {
@@ -254,9 +252,11 @@ fun HushChip(label: String, selected: Boolean, onClick: () -> Unit) {
     Box(
         Modifier
             .height(44.dp)
-            .clip(shape)
-            .background(if (selected) MaterialTheme.colorScheme.primary else Dusk.Raised)
-            .then(if (selected) Modifier else Modifier.border(1.dp, Dusk.Line, shape))
+            .liquidGlass(
+                shape,
+                tint = if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.92f) else Color.Unspecified,
+                interactive = true
+            )
             .clickable { haptic(Tap.Click); onClick() }
             .padding(horizontal = 18.dp),
         contentAlignment = Alignment.Center
@@ -487,14 +487,13 @@ fun MiniPlayer(
     Column(
         modifier
             .fillMaxWidth()
-            .clip(shape)
-            .background(Dusk.Surface)
-            .background(
-                Brush.horizontalGradient(
-                    listOf(accent.copy(alpha = 0.28f), Dusk.Pink.copy(alpha = 0.18f))
-                )
+            .liquidGlass(
+                shape,
+                tint = accent.copy(alpha = 0.20f),
+                lift = 12.dp,
+                interactive = true,
+                backing = Dusk.Surface.copy(alpha = 0.84f)
             )
-            .border(1.dp, Dusk.Line, shape)
             .clickable { haptic(Tap.Tick); onOpen() }
     ) {
         Row(
@@ -574,9 +573,7 @@ fun FloatingNav(current: String?, onSelect: (String) -> Unit, modifier: Modifier
         modifier
             .fillMaxWidth()
             .height(64.dp)
-            .clip(shape)
-            .background(Dusk.Raised.copy(alpha = 0.94f))
-            .border(1.dp, Dusk.Line, shape)
+            .liquidGlass(shape, lift = 14.dp, backing = Dusk.Raised.copy(alpha = 0.82f))
             .padding(horizontal = 8.dp),
         horizontalArrangement = Arrangement.SpaceAround,
         verticalAlignment = Alignment.CenterVertically
@@ -586,8 +583,7 @@ fun FloatingNav(current: String?, onSelect: (String) -> Unit, modifier: Modifier
                 Row(
                     Modifier
                         .height(48.dp)
-                        .clip(CircleShape)
-                        .background(accent)
+                        .liquidGlass(CircleShape, tint = accent.copy(alpha = 0.92f), interactive = true)
                         .clickable(onClickLabel = item.label) { pick(item.route) }
                         .padding(horizontal = 18.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),

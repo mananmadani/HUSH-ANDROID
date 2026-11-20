@@ -157,7 +157,13 @@ fun PlayerScreen(vm: HushVm, onClose: () -> Unit) {
                 contentAlignment = Alignment.Center
             ) {
                 val side = if (maxWidth < maxHeight) maxWidth else maxHeight
-                Art(state.art, side, radius = 32.dp, seed = state.title)
+                Art(
+                    state.art, side, radius = 32.dp, seed = state.title,
+                    modifier = Modifier
+                        .tiltParallax()
+                        .clip(androidx.compose.foundation.shape.RoundedCornerShape(32.dp))
+                        .glassSheen()
+                )
             }
 
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -217,7 +223,10 @@ fun PlayerScreen(vm: HushVm, onClose: () -> Unit) {
                     Modifier
                         .fillMaxWidth()
                         .padding(top = 12.dp)
-                        .background(Dusk.Surface, androidx.compose.foundation.shape.RoundedCornerShape(16.dp))
+                        .liquidGlass(
+                            androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
+                            backing = Dusk.Surface.copy(alpha = 0.8f)
+                        )
                         .padding(start = 16.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -243,8 +252,7 @@ fun PlayerScreen(vm: HushVm, onClose: () -> Unit) {
                 Box(
                     Modifier
                         .size(72.dp)
-                        .clip(CircleShape)
-                        .background(accent)
+                        .liquidGlass(CircleShape, tint = accent.copy(alpha = 0.92f), lift = 16.dp, interactive = true)
                         .clickable(onClickLabel = if (state.playing) "Pause" else "Play") {
                             haptic(Tap.Heavy)
                             vm.player.toggle()

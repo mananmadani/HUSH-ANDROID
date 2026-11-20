@@ -246,9 +246,7 @@ private fun Modifier.statsCard(): Modifier {
     return this
         .padding(horizontal = 16.dp)
         .fillMaxWidth()
-        .clip(shape)
-        .background(Dusk.Raised)
-        .border(1.dp, Dusk.Line, shape)
+        .liquidGlass(shape)
 }
 
 @Composable
@@ -257,9 +255,7 @@ private fun RowScope.StatCard(value: String, label: String, highlight: Boolean =
     Column(
         Modifier
             .weight(1f)
-            .clip(shape)
-            .background(if (highlight) MaterialTheme.colorScheme.primary else Dusk.Raised)
-            .then(if (highlight) Modifier else Modifier.border(1.dp, Dusk.Line, shape))
+            .liquidGlass(shape, tint = if (highlight) MaterialTheme.colorScheme.primary.copy(alpha = 0.55f) else Color.Unspecified)
             .padding(vertical = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {

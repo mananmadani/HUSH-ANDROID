@@ -35,6 +35,12 @@ object Prefs {
         private set
     var haptics by mutableStateOf(true)
         private set
+    var glassMotion by mutableStateOf(true)
+        private set
+
+    /** 0 = frosted and solid, 1 = clear and see-through. */
+    var glassClarity by mutableStateOf(0.5f)
+        private set
 
     private val current: Accent
         get() = ACCENTS[accentIndex.coerceIn(0, ACCENTS.lastIndex)]
@@ -54,6 +60,18 @@ object Prefs {
         light = sp.getBoolean("light", false)
         autoUpdate = sp.getBoolean("auto_update", true)
         haptics = sp.getBoolean("haptics", true)
+        glassMotion = sp.getBoolean("glass_motion", true)
+        glassClarity = sp.getFloat("glass_clarity", 0.5f).coerceIn(0f, 1f)
+    }
+
+    fun setGlassClarity(value: Float) {
+        glassClarity = value.coerceIn(0f, 1f)
+        sp.edit().putFloat("glass_clarity", glassClarity).apply()
+    }
+
+    fun enableGlassMotion(enabled: Boolean) {
+        glassMotion = enabled
+        sp.edit().putBoolean("glass_motion", enabled).apply()
     }
 
     fun enableHaptics(enabled: Boolean) {
