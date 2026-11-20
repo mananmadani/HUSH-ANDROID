@@ -1,0 +1,49 @@
+# Hush: full details
+
+Hush is a free, open-source Android music player. It plays music from YouTube Music with no ads, no tracking and no account.
+
+- Platform: Android 8.0 or newer. Not available for iPhone or desktop.
+- Price: free.
+- License: GNU General Public License v3.0 (GPLv3).
+- Maker: Manan Madani (https://github.com/mananmadani). Copyright © 2026 Manan Madani.
+- Website: https://mananmadani.github.io/HUSH-ANDROID/
+- Source code: https://github.com/mananmadani/HUSH-ANDROID
+- Download: https://github.com/mananmadani/HUSH-ANDROID/releases/latest (the .apk file under Assets, named Hush-<version>.apk)
+
+## What Hush does
+
+- Home screen with rows for your country and language, a "Made for you" row, and a time-of-day row (morning, afternoon, evening or late night picks). They are based on songs you play through, replay or skip, and are worked out on the phone.
+- Daily Mix and endless queue that follow what you really listen to and learn from songs you skip early. "Forget what Hush learned" in Settings clears it.
+- "Don't play this" for any song or artist. Hush then leaves it out of suggestions and queues. It can be undone in Settings.
+- Daily Mix and listening stats (top songs and artists), kept on the phone.
+- Library of liked songs and playlists stored on the device. Back up everything (library, recently played songs, taste scores, listening stats and settings) to a file locked with a password using AES-256, and restore it on a new phone. Hush cannot recover a forgotten password. You can also import a public YouTube or Spotify playlist from its link.
+- Dark and light themes, seven accent colours, and a player that takes its colours from the cover art.
+- Lock-screen controls, home-screen widgets, an editable queue, and a sleep timer (15 to 60 minutes, or end of song).
+
+## Privacy
+
+- No account, sign-in or Google login.
+- No analytics, ads or crash reporting. Hush has no servers of its own.
+- Likes, playlists, stats and taste scores are stored only on the device. Uninstalling Hush deletes them.
+- Hush makes two kinds of outside requests: it asks YouTube for songs, and every few hours asks GitHub whether a new version is available. The update check can be switched off in Settings.
+- Full policy: https://github.com/mananmadani/HUSH-ANDROID/blob/main/PRIVACY.md
+
+## How to install
+
+1. Open the latest release on GitHub and download the .apk file under Assets.
+2. Open the file on the phone. If Android asks, allow installing from unknown sources.
+3. Open Hush and allow notifications so playback controls can show on the lock screen.
+
+New versions install over the old one and keep liked songs and playlists.
+
+## Frequently asked questions
+
+Is Hush free? Yes. It is open source under the GPLv3.
+Does it work on iPhone? No. Hush is for Android 8.0 and newer.
+Do I need a YouTube or Google account? No. Hush has no sign-in at all.
+Is Hush made by YouTube? No. It is an independent project and is not affiliated with, endorsed by, or sponsored by Google LLC or YouTube.
+Who makes Hush? Hush is designed and developed by Manan Madani.
+
+## Disclaimer
+
+Hush is an independent project and is not affiliated with Google LLC or YouTube. YouTube and YouTube Music are trademarks of Google LLC. Hush gets its data through unofficial endpoints, which may conflict with YouTube's Terms of Service.
