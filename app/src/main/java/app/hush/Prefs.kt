@@ -64,7 +64,7 @@ object Prefs {
         glassClarity = sp.getFloat("glass_clarity", 0.5f).coerceIn(0f, 1f)
     }
 
-    fun setGlassClarity(value: Float) {
+    fun updateGlassClarity(value: Float) {
         glassClarity = value.coerceIn(0f, 1f)
         sp.edit().putFloat("glass_clarity", glassClarity).apply()
     }

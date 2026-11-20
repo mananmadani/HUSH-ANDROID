@@ -318,7 +318,7 @@ private fun GlassSliderRow() {
         }
         Slider(
             value = Prefs.glassClarity,
-            onValueChange = { Prefs.setGlassClarity(it) },
+            onValueChange = { Prefs.updateGlassClarity(it) },
             colors = androidx.compose.material3.SliderDefaults.colors(
                 thumbColor = Dusk.Text,
                 activeTrackColor = MaterialTheme.colorScheme.primary,
