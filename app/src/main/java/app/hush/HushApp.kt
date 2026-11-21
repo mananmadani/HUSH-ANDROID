@@ -6,6 +6,7 @@ import app.hush.data.Repo
 import app.hush.dj.DjEngine
 import app.hush.dj.DjFeed
 import app.hush.dj.DjHistory
+import app.hush.dj.DjStats
 import app.hush.net.HushDownloader
 import app.hush.net.UpdateWorker
 import app.hush.player.PlayerController
@@ -36,6 +37,7 @@ class HushApp : Application() {
         Taste.init(this)
         Affinity.init(this)
         DjHistory.init(this)
+        DjStats.init(this)
         UpdateWorker.schedule(this, Prefs.autoUpdate)
 
         // Ask YouTube Music in the phone's own language and country.
@@ -60,26 +62,13 @@ class HushApp : Application() {
             onTick = { Stats.tick(it) }
         )
 
+        // DJ mode keeps its own history and numbers, apart from normal listening.
         dj = DjEngine(
             this,
             DjFeed(),
-            onTrackStarted = { song ->
-                io.launch {
-                    repo.recordPlay(song)
-                    Stats.recordPlay(song)
-                    Affinity.recordStart(song)
-                }
-            },
-            onTrackEnded = { song, how ->
-                io.launch {
-                    when (how) {
-                        1 -> Affinity.finished(song)
-                        2 -> Affinity.skipped(song)
-                        else -> Affinity.partlyPlayed(song)
-                    }
-                }
-            },
-            onTick = { Stats.tick(it) },
+            onTrackStarted = { song -> DjStats.recordStart(song) },
+            onTrackEnded = { song, how -> DjStats.ended(song, how) },
+            onTick = { DjStats.tick(it) },
             pauseMain = { player.pauseForDj() }
         )
         // While a DJ set runs, songs chosen anywhere in the app are mixed into it.

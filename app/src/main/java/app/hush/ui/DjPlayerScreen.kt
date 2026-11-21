@@ -63,7 +63,7 @@ import app.hush.dj.DjUi
 import kotlin.math.roundToInt
 
 @Composable
-fun DjPlayerScreen(vm: HushVm, onClose: () -> Unit, onAddSongs: () -> Unit) {
+fun DjPlayerScreen(vm: HushVm, onClose: () -> Unit, onOpenQueue: () -> Unit) {
     val ui by vm.dj.ui.collectAsState()
     val haptic = rememberHaptics()
     val accent = MaterialTheme.colorScheme.primary
@@ -100,9 +100,13 @@ fun DjPlayerScreen(vm: HushVm, onClose: () -> Unit, onAddSongs: () -> Unit) {
             )
             .statusBarsPadding()
             .navigationBarsPadding()
+    ) {
+      Column(
+        Modifier
+            .weight(1f)
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 16.dp, vertical = 8.dp)
-    ) {
+      ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             RoundIconButton(Icons.Filled.KeyboardArrowDown, "Close", onClose)
             Text(
@@ -210,8 +214,45 @@ fun DjPlayerScreen(vm: HushVm, onClose: () -> Unit, onAddSongs: () -> Unit) {
             }
         }
 
+        Label("UP NEXT")
+        val queue by vm.dj.queue.collectAsState()
+        if (queue.isEmpty()) {
+            Text("Nothing queued. Hush picks the next songs for you.", fontSize = 13.sp, color = Dusk.Muted)
+        }
+        queue.take(3).forEach { s ->
+            Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                Art(s.thumb, 40.dp, radius = 10.dp, seed = s.title)
+                Text(
+                    s.title,
+                    fontSize = 14.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(start = 12.dp)
+                )
+            }
+        }
+        if (queue.size > 3) {
+            Text("+${queue.size - 3} more", fontSize = 12.sp, color = Dusk.Muted, modifier = Modifier.padding(top = 4.dp))
+        }
+        Box(
+            Modifier
+                .padding(top = 12.dp)
+                .fillMaxWidth()
+                .height(48.dp)
+                .clip(RoundedCornerShape(24.dp))
+                .border(1.dp, Dusk.Line, RoundedCornerShape(24.dp))
+                .clickable { haptic(Tap.Click); onOpenQueue() },
+            contentAlignment = Alignment.Center
+        ) {
+            Text("Queue and search", fontWeight = FontWeight.SemiBold)
+        }
+        Spacer(Modifier.height(16.dp))
+      }
+
+      // The controls stay on screen, so they are always within reach.
+      Column(Modifier.padding(start = 16.dp, end = 16.dp, top = 6.dp, bottom = 12.dp)) {
         Row(
-            Modifier.fillMaxWidth().padding(top = 22.dp),
+            Modifier.fillMaxWidth().padding(top = 4.dp),
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -247,27 +288,7 @@ fun DjPlayerScreen(vm: HushVm, onClose: () -> Unit, onAddSongs: () -> Unit) {
         ) {
             Text("MIX NOW", fontWeight = FontWeight.Bold, letterSpacing = 2.sp, color = accent)
         }
-        Label("UP NEXT")
-        Text(
-            "Hold the handle and drag to reorder.",
-            fontSize = 12.sp,
-            color = Dusk.Muted,
-            modifier = Modifier.padding(bottom = 6.dp)
-        )
-        DjQueueList(vm)
-        Box(
-            Modifier
-                .padding(top = 12.dp)
-                .fillMaxWidth()
-                .height(48.dp)
-                .clip(RoundedCornerShape(24.dp))
-                .border(1.dp, Dusk.Line, RoundedCornerShape(24.dp))
-                .clickable { haptic(Tap.Click); onAddSongs() },
-            contentAlignment = Alignment.Center
-        ) {
-            Text("Search and add songs", fontWeight = FontWeight.SemiBold)
-        }
-        Spacer(Modifier.height(24.dp))
+      }
     }
 }
 

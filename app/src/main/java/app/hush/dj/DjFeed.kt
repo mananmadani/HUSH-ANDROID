@@ -141,6 +141,11 @@ class DjFeed {
                 if (song.artist.isNotBlank()) personal.add("${song.artist} $suffix")
             }
         }
+        // What you played in DJ mode counts too.
+        DjStats.topSongs(8).shuffled().take(5).forEach { song ->
+            if (song.title.isNotBlank()) personal.add("${cleanTitle(song.title)} remix")
+            if (song.artist.isNotBlank()) personal.add("${song.artist} $suffix")
+        }
         val generic = ArrayList<String>(styles)
         if (Region.countryCode == "IN") generic.addAll(desiStyles)
         generic.shuffle()

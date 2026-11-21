@@ -69,7 +69,7 @@ import kotlinx.coroutines.launch
 
 /** The DJ tab: search, your queue, and an endless list of club-friendly songs picked from what you listen to. */
 @Composable
-fun DjScreen(vm: HushVm, onOpenDeck: () -> Unit) {
+fun DjScreen(vm: HushVm, onOpenDeck: () -> Unit, onOpenStats: () -> Unit) {
     val feed = vm.dj.feed
     val songs by feed.songs.collectAsState()
     val loading by feed.loading.collectAsState()
@@ -116,7 +116,24 @@ fun DjScreen(vm: HushVm, onOpenDeck: () -> Unit) {
     LazyColumn(state = state, modifier = Modifier.fillMaxWidth()) {
         item {
             Column(Modifier.padding(start = 20.dp, end = 20.dp, top = 18.dp)) {
-                Text("DJ", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        "DJ",
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Text(
+                        "History and stats",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = accent,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(14.dp))
+                            .clickable { haptic(Tap.Click); onOpenStats() }
+                            .padding(horizontal = 12.dp, vertical = 8.dp)
+                    )
+                }
                 Text(
                     "Club-ready songs picked from what you listen to. Hush mixes them on the beat.",
                     fontSize = 13.sp,
@@ -321,7 +338,7 @@ fun DjScreen(vm: HushVm, onOpenDeck: () -> Unit) {
 }
 
 @Composable
-private fun DjSongRow(
+internal fun DjSongRow(
     vm: HushVm,
     song: SongEntity,
     running: Boolean,

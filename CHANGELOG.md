@@ -6,6 +6,22 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+## [1.0.20]
+
+### Added
+- **DJ history and stats.** DJ mode now keeps its own history and numbers (sets, songs played, listening time, top songs and artists, recently played), separate from your normal listening. Open it from **History and stats** on the DJ tab. Playing in DJ mode no longer changes your normal history, stats or taste, and what you play in DJ mode shapes DJ suggestions only.
+- **A screen for the queue and search.** **Queue and search** on the decks screen opens a page with the search bar, your "Up next" queue (drag to reorder) and suggestions.
+- **Clear DJ history and stats** in Settings.
+
+### Changed
+- **New tab order.** Home, Search, DJ, Library. DJ takes the old Library spot and Library moves to the end.
+- The decks screen keeps the play, skip, stop and Mix now buttons on screen at all times.
+
+### Fixed
+- The search and add button on the decks screen did nothing.
+- The queue was hard to reach on the decks screen.
+
+
 ## [1.0.19]
 
 ### Added

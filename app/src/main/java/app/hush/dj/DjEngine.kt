@@ -312,6 +312,7 @@ class DjEngine(
         claimed.add(song.url)
         cursor = feedCursor
         startedAt = SystemClock.elapsedRealtime()
+        DjStats.startSet()
         status = "Getting the first track ready..."
         requestFocus()
         ContextCompat.startForegroundService(app, Intent(app, DjService::class.java))

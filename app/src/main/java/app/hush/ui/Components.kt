@@ -561,8 +561,8 @@ private class NavItem(val route: String, val label: String, val icon: ImageVecto
 private val NAV_ITEMS = listOf(
     NavItem("home", "Home", Icons.Filled.Home),
     NavItem("search", "Search", Icons.Filled.Search),
-    NavItem("library", "Library", Icons.Filled.LibraryMusic),
-    NavItem("dj", "DJ", Icons.Filled.Album)
+    NavItem("dj", "DJ", Icons.Filled.Album),
+    NavItem("library", "Library", Icons.Filled.LibraryMusic)
 )
 
 /** The floating pill at the bottom: the active tab expands to show its name. */

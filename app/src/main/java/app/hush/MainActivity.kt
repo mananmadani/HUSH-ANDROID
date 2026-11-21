@@ -51,7 +51,9 @@ import app.hush.ui.CollectionScreen
 import app.hush.ui.DailyMixScreen
 import app.hush.ui.DjMiniBar
 import app.hush.ui.DjPlayerScreen
+import app.hush.ui.DjQueueScreen
 import app.hush.ui.DjScreen
+import app.hush.ui.DjStatsScreen
 import app.hush.ui.Dusk
 import app.hush.ui.LocalOpenArtist
 import app.hush.ui.LocalOpenCollection
@@ -179,7 +181,25 @@ private fun HushRoot(vm: HushVm = viewModel()) {
             }
             composable("dailymix") { Page { DailyMixScreen(vm, onBack = { nav.popBackStack() }) } }
             composable("search") { Page { SearchScreen(vm) } }
-            composable("dj") { Page { DjScreen(vm, onOpenDeck = { nav.navigate("djplayer") { launchSingleTop = true } }) } }
+            composable("dj") {
+                Page {
+                    DjScreen(
+                        vm,
+                        onOpenDeck = { nav.navigate("djplayer") { launchSingleTop = true } },
+                        onOpenStats = { nav.navigate("djstats") }
+                    )
+                }
+            }
+            composable("djstats") {
+                Page {
+                    DjStatsScreen(
+                        vm,
+                        onBack = { nav.popBackStack() },
+                        onOpenDeck = { nav.navigate("djplayer") { launchSingleTop = true } }
+                    )
+                }
+            }
+            composable("djqueue") { Page { DjQueueScreen(vm, onBack = { nav.popBackStack() }) } }
             composable(
                 "djplayer",
                 enterTransition = { slideInVertically(tween(280)) { it } },
@@ -190,13 +210,7 @@ private fun HushRoot(vm: HushVm = viewModel()) {
                 DjPlayerScreen(
                     vm,
                     onClose = { nav.popBackStack() },
-                    onAddSongs = {
-                        nav.navigate("dj") {
-                            popUpTo(nav.graph.findStartDestination().id) { saveState = true }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    }
+                    onOpenQueue = { nav.navigate("djqueue") { launchSingleTop = true } }
                 )
             }
             composable("library") {
