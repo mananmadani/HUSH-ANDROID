@@ -289,7 +289,14 @@ class DjEngine(
             while (first == null && tries < 6 && isActive && session == mySession) {
                 val song = nextCandidate() ?: break
                 tries++
-                first = prepareSong(song)
+                first = prepareSong(song) { text ->
+                    scope.launch {
+                        if (session == mySession && phase == Phase.Loading) {
+                            status = text
+                            publish()
+                        }
+                    }
+                }
             }
             if (session != mySession || !running) return@launch
             if (first == null) {
@@ -412,9 +419,11 @@ class DjEngine(
         return null
     }
 
-    private suspend fun prepareSong(song: SongEntity): DjTrack? {
+    private suspend fun prepareSong(song: SongEntity, stage: ((String) -> Unit)? = null): DjTrack? {
         return try {
-            val file = download(song)
+            stage?.invoke("Finding the song...")
+            val file = download(song, stage)
+            stage?.invoke("Listening for the beat...")
             val analysis = withContext(Dispatchers.Default) { BeatAnalyzer.analyze(file.absolutePath) }
             if (analysis == null) {
                 file.delete()
@@ -429,27 +438,85 @@ class DjEngine(
         }
     }
 
-    private suspend fun download(song: SongEntity): File = withContext(Dispatchers.IO) {
-        val link = YtMusic.resolveStream(song.url)
-        val name = "t" + (song.url.hashCode().toLong() and 0xffffffffL) + ".dj"
-        val out = File(dir, name)
-        if (out.exists() && out.length() > 200_000L) return@withContext out
-        val part = File(dir, "$name.part")
-        val request = Request.Builder()
-            .url(link)
-            .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; rv:128.0) Gecko/20100101 Firefox/128.0")
-            .build()
-        http.newCall(request).execute().use { response ->
-            if (!response.isSuccessful) throw IOException("HTTP ${response.code}")
-            val body = response.body ?: throw IOException("Empty response")
-            body.byteStream().use { input -> part.outputStream().use { o -> input.copyTo(o) } }
-        }
-        if (part.length() < 200_000L) {
+    private suspend fun download(song: SongEntity, stage: ((String) -> Unit)? = null): File =
+        withContext(Dispatchers.IO) {
+            val link = YtMusic.resolveStream(song.url)
+            val name = "t" + (song.url.hashCode().toLong() and 0xffffffffL) + ".dj"
+            val out = File(dir, name)
+            if (out.exists() && out.length() > 200_000L) return@withContext out
+            val part = File(dir, "$name.part")
             part.delete()
-            throw IOException("Download too small")
+
+            val total = Regex("[?&]clen=(\\d+)").find(link)?.groupValues?.get(1)?.toLongOrNull() ?: 0L
+            if (total > 200_000L) {
+                try {
+                    downloadChunks(link, total, part, stage)
+                } catch (e: CancellationException) {
+                    part.delete()
+                    throw e
+                } catch (e: Exception) {
+                    // Fall back to one plain request below.
+                    part.delete()
+                }
+            }
+            if (!part.exists() || part.length() < 200_000L) {
+                part.delete()
+                stage?.invoke("Downloading...")
+                val request = Request.Builder().url(link).header("User-Agent", UA).build()
+                http.newCall(request).execute().use { response ->
+                    if (!response.isSuccessful) throw IOException("HTTP ${response.code}")
+                    val body = response.body ?: throw IOException("Empty response")
+                    body.byteStream().use { input -> part.outputStream().use { o -> input.copyTo(o) } }
+                }
+            }
+            if (part.length() < 200_000L) {
+                part.delete()
+                throw IOException("Download too small")
+            }
+            part.renameTo(out)
+            out
         }
-        part.renameTo(out)
-        out
+
+    /** YouTube slows down whole-file requests, so ask for the song in pieces, several at once. */
+    private suspend fun downloadChunks(link: String, total: Long, part: File, stage: ((String) -> Unit)?) {
+        val chunk = 1_000_000L
+        val count = ((total + chunk - 1) / chunk).toInt()
+        val done = java.util.concurrent.atomic.AtomicLong(0)
+        val next = java.util.concurrent.atomic.AtomicInteger(0)
+        val file = java.io.RandomAccessFile(part, "rw")
+        try {
+            file.setLength(total)
+            kotlinx.coroutines.coroutineScope {
+                val workers = (1..4).map {
+                    launch(Dispatchers.IO) {
+                        while (true) {
+                            val i = next.getAndIncrement()
+                            if (i >= count) break
+                            val from = i * chunk
+                            val to = minOf(total - 1, from + chunk - 1)
+                            val request = Request.Builder()
+                                .url("$link&range=$from-$to")
+                                .header("User-Agent", UA)
+                                .build()
+                            http.newCall(request).execute().use { response ->
+                                if (!response.isSuccessful) throw IOException("HTTP ${response.code}")
+                                val bytes = (response.body ?: throw IOException("Empty response")).bytes()
+                                if (bytes.size.toLong() != to - from + 1) throw IOException("Short chunk")
+                                synchronized(file) {
+                                    file.seek(from)
+                                    file.write(bytes)
+                                }
+                                val now = done.addAndGet(bytes.size.toLong())
+                                stage?.invoke("Downloading... ${(now * 100 / total).toInt()}%")
+                            }
+                        }
+                    }
+                }
+                workers.forEach { it.join() }
+            }
+        } finally {
+            file.close()
+        }
     }
 
     /** Keeps a few songs downloaded and analysed ahead of time. */
@@ -876,6 +943,7 @@ class DjEngine(
     }
 
     private companion object {
+        const val UA = "Mozilla/5.0 (Windows NT 10.0; rv:128.0) Gecko/20100101 Firefox/128.0"
         const val NORMAL = 0
         const val NOW = 1
         const val QUICK = 2
