@@ -365,7 +365,7 @@ fun LibraryScreen(
                         .size(44.dp)
                         .clip(CircleShape)
                         .background(Color(0x33FFFFFF))
-                        .clickable(enabled = liked.isNotEmpty()) { vm.player.play(liked, 0) },
+                        .clickable(enabled = liked.isNotEmpty()) { vm.player.play(liked, 0, whole = true) },
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(Icons.Filled.PlayArrow, "Play liked songs", tint = Color.White)
@@ -765,11 +765,11 @@ private fun SongListPage(
                             Modifier.padding(horizontal = 20.dp, vertical = 14.dp),
                             horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            Button(onClick = { vm.player.play(shown, 0) }) {
+                            Button(onClick = { vm.player.play(shown, 0, whole = true) }) {
                                 Icon(Icons.Filled.PlayArrow, null)
                                 Text("Play", modifier = Modifier.padding(start = 6.dp))
                             }
-                            OutlinedButton(onClick = { vm.player.play(shown, 0, shuffle = true) }) {
+                            OutlinedButton(onClick = { vm.player.play(shown, 0, shuffle = true, whole = true) }) {
                                 Icon(Icons.Filled.Shuffle, null)
                                 Text("Shuffle", modifier = Modifier.padding(start = 6.dp))
                             }

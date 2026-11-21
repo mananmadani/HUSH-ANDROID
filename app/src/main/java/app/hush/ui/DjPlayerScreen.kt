@@ -63,7 +63,7 @@ import app.hush.dj.DjUi
 import kotlin.math.roundToInt
 
 @Composable
-fun DjPlayerScreen(vm: HushVm, onClose: () -> Unit) {
+fun DjPlayerScreen(vm: HushVm, onClose: () -> Unit, onAddSongs: () -> Unit) {
     val ui by vm.dj.ui.collectAsState()
     val haptic = rememberHaptics()
     val accent = MaterialTheme.colorScheme.primary
@@ -80,11 +80,24 @@ fun DjPlayerScreen(vm: HushVm, onClose: () -> Unit) {
         infiniteRepeatable(tween(2600, easing = LinearEasing), RepeatMode.Restart),
         label = "angle"
     )
+    val wave by spin.animateFloat(
+        0f, 1f,
+        infiniteRepeatable(tween(1800, easing = LinearEasing), RepeatMode.Restart),
+        label = "wave"
+    )
 
+    val glow = 0.10f + 0.16f * ui.pulse * (0.4f + 0.6f * ui.energy)
     Column(
         Modifier
             .fillMaxSize()
             .background(Dusk.Bg)
+            .background(
+                androidx.compose.ui.graphics.Brush.radialGradient(
+                    listOf(accent.copy(alpha = glow), Color.Transparent),
+                    center = androidx.compose.ui.geometry.Offset(540f, 500f),
+                    radius = 1300f
+                )
+            )
             .statusBarsPadding()
             .navigationBarsPadding()
             .verticalScroll(rememberScrollState())
@@ -98,17 +111,41 @@ fun DjPlayerScreen(vm: HushVm, onClose: () -> Unit) {
                 letterSpacing = 2.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = Dusk.Muted,
-                modifier = Modifier.padding(start = 14.dp)
+                modifier = Modifier.padding(start = 14.dp).weight(1f)
             )
+            if (ui.phaseName.isNotBlank()) {
+                Text(
+                    ui.phaseName,
+                    fontSize = 12.sp,
+                    letterSpacing = 1.6.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = accent,
+                    modifier = Modifier.padding(end = 8.dp)
+                )
+            }
+        }
+
+        Box(Modifier.fillMaxWidth().height(40.dp), contentAlignment = Alignment.Center) {
+            if (ui.beatsToMix in 1..8) {
+                Text(
+                    "DROP IN ${ui.beatsToMix}",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    letterSpacing = 3.sp,
+                    color = accent
+                )
+            }
         }
 
         Row(
-            Modifier.fillMaxWidth().padding(top = 18.dp),
+            Modifier.fillMaxWidth().padding(top = 4.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Deck(ui.decks[0], "A", spinning = ui.playing && ui.decks[0].audible, angle = angle, modifier = Modifier.weight(1f))
-            Deck(ui.decks[1], "B", spinning = ui.playing && ui.decks[1].audible, angle = angle, modifier = Modifier.weight(1f))
+            Deck(ui.decks[0], "A", spinning = ui.playing && ui.decks[0].audible, angle = angle, pulse = ui.pulse, modifier = Modifier.weight(1f))
+            Deck(ui.decks[1], "B", spinning = ui.playing && ui.decks[1].audible, angle = angle, pulse = ui.pulse, modifier = Modifier.weight(1f))
         }
+
+        DjBars(ui.pulse, ui.energy, ui.playing, wave)
 
         // Crossfader: shows where the sound is moving between the decks.
         val side = if (ui.master == 0) 0f else 1f
@@ -166,14 +203,7 @@ fun DjPlayerScreen(vm: HushVm, onClose: () -> Unit) {
         Label("ENERGY")
         EnergyBar(ui.energy, ui.energyTarget)
 
-        Label("FX")
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            FxPad("BASS SWAP", Prefs.djBassSwap, Modifier.weight(1f)) { Prefs.enableDjBass(!Prefs.djBassSwap) }
-            FxPad("FILTER", Prefs.djFilter, Modifier.weight(1f)) { Prefs.enableDjFilter(!Prefs.djFilter) }
-            FxPad("ECHO", Prefs.djEcho, Modifier.weight(1f)) { Prefs.enableDjEcho(!Prefs.djEcho) }
-        }
-
-        Label("SET SHAPE")
+        Label("SET MOOD")
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             listOf("Steady", "Build up", "Waves").forEachIndexed { i, label ->
                 HushChip(label, Prefs.djShape == i) { Prefs.chooseDjShape(i) }
@@ -217,6 +247,26 @@ fun DjPlayerScreen(vm: HushVm, onClose: () -> Unit) {
         ) {
             Text("MIX NOW", fontWeight = FontWeight.Bold, letterSpacing = 2.sp, color = accent)
         }
+        Label("UP NEXT")
+        Text(
+            "Hold the handle and drag to reorder.",
+            fontSize = 12.sp,
+            color = Dusk.Muted,
+            modifier = Modifier.padding(bottom = 6.dp)
+        )
+        DjQueueList(vm)
+        Box(
+            Modifier
+                .padding(top = 12.dp)
+                .fillMaxWidth()
+                .height(48.dp)
+                .clip(RoundedCornerShape(24.dp))
+                .border(1.dp, Dusk.Line, RoundedCornerShape(24.dp))
+                .clickable { haptic(Tap.Click); onAddSongs() },
+            contentAlignment = Alignment.Center
+        ) {
+            Text("Search and add songs", fontWeight = FontWeight.SemiBold)
+        }
         Spacer(Modifier.height(24.dp))
     }
 }
@@ -234,7 +284,7 @@ private fun Label(text: String) {
 }
 
 @Composable
-private fun Deck(deck: DjDeckUi, name: String, spinning: Boolean, angle: Float, modifier: Modifier) {
+private fun Deck(deck: DjDeckUi, name: String, spinning: Boolean, angle: Float, pulse: Float, modifier: Modifier) {
     val accent = MaterialTheme.colorScheme.primary
     val shape = RoundedCornerShape(22.dp)
     Column(
@@ -250,7 +300,12 @@ private fun Deck(deck: DjDeckUi, name: String, spinning: Boolean, angle: Float, 
             Modifier
                 .padding(vertical = 10.dp)
                 .size(110.dp)
-                .graphicsLayer { rotationZ = if (spinning) angle else 0f },
+                .graphicsLayer {
+                    rotationZ = if (spinning) angle else 0f
+                    val bump = if (deck.audible && spinning) 1f + 0.04f * pulse else 1f
+                    scaleX = bump
+                    scaleY = bump
+                },
             contentAlignment = Alignment.Center
         ) {
             if (deck.loaded) {
@@ -329,27 +384,30 @@ private fun EnergyBar(energy: Float, target: Float) {
     }
 }
 
+/** Bars that move with the beat and the energy. They follow the rhythm; they are not a true spectrum. */
 @Composable
-private fun FxPad(label: String, on: Boolean, modifier: Modifier, onClick: () -> Unit) {
+private fun DjBars(pulse: Float, energy: Float, playing: Boolean, wave: Float) {
     val accent = MaterialTheme.colorScheme.primary
-    val haptic = rememberHaptics()
-    val shape = RoundedCornerShape(16.dp)
-    Box(
-        modifier
-            .height(54.dp)
-            .clip(shape)
-            .background(if (on) accent else Dusk.Raised)
-            .border(1.dp, if (on) accent else Dusk.Line, shape)
-            .clickable { haptic(Tap.Click); onClick() },
-        contentAlignment = Alignment.Center
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .padding(top = 16.dp)
+            .height(54.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        verticalAlignment = Alignment.Bottom
     ) {
-        Text(
-            label,
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Bold,
-            letterSpacing = 1.sp,
-            color = if (on) Dusk.OnAccent else Dusk.Text
-        )
+        val count = 28
+        for (i in 0 until count) {
+            val swing = 0.5f + 0.5f * kotlin.math.sin(2.0 * Math.PI * (wave * (1 + i % 3) + i * 0.137)).toFloat()
+            val live = if (playing) (0.18f + 0.82f * swing) * (0.30f + 0.70f * pulse) * (0.35f + 0.65f * energy) else 0.06f
+            Box(
+                Modifier
+                    .weight(1f)
+                    .fillMaxHeight(live.coerceIn(0.06f, 1f))
+                    .clip(RoundedCornerShape(3.dp))
+                    .background(accent.copy(alpha = 0.55f + 0.35f * live))
+            )
+        }
     }
 }
 

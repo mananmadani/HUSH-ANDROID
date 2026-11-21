@@ -39,7 +39,16 @@ class DjFeed {
 
     private val desiStyles = listOf("bollywood club remix", "punjabi dj remix", "desi house remix", "hindi edm")
 
-    private val suffixes = listOf("remix", "club mix", "dj edit", "extended mix", "bootleg", "mashup")
+    private val suffixes = listOf(
+        "remix", "club mix", "dj edit", "extended mix", "bootleg", "mashup", "club edit",
+        "radio edit", "vip mix", "festival mix", "dance edit"
+    )
+
+    /** Extra words so the same search does not bring back the same results every time. */
+    private val flavours = listOf(
+        "2023", "2024", "2025", "2026", "new", "best", "popular", "viral", "underground",
+        "party", "club", "festival", "late night", "peak time", "warm up", "bangers"
+    )
 
     /** Clears the list so the next load starts fresh (for example after your taste changed). */
     suspend fun reset() = lock.withLock {
@@ -47,6 +56,12 @@ class DjFeed {
         queries = ArrayDeque()
         round = 0
         _songs.value = emptyList<SongEntity>()
+    }
+
+    /** Starts over with a fresh list. */
+    suspend fun refresh() {
+        reset()
+        loadMore()
     }
 
     /** Loads a first screenful if the list is empty. */
@@ -83,15 +98,23 @@ class DjFeed {
 
                 // Take songs from each search in turn so the list stays varied.
                 val fresh = ArrayList<SongEntity>()
-                val depth = results.maxOfOrNull { it.size } ?: 0
+                val mixed = results.map { it.shuffled() }
+                val depth = mixed.maxOfOrNull { it.size } ?: 0
+                // The last few artists, so the same artist does not come up again and again.
+                val recent = ArrayList<String>()
+                _songs.value.takeLast(4).forEach { recent.add(it.artist.lowercase()) }
                 for (i in 0 until depth) {
-                    for (list in results) {
+                    for (list in mixed) {
                         val s = list.getOrNull(i) ?: continue
                         if (s.url in seen) continue
                         if (s.durationSec in 1L..89L || s.durationSec > 720L) continue
                         if (Taste.isBlocked(s)) continue
+                        if (DjHistory.has(s.url)) continue
+                        val artist = s.artist.lowercase()
+                        if (artist.isNotBlank() && recent.takeLast(4).contains(artist)) continue
                         seen.add(s.url)
                         fresh.add(s)
+                        recent.add(artist)
                     }
                 }
                 if (fresh.isNotEmpty()) {
@@ -124,8 +147,9 @@ class DjFeed {
 
         // One of yours, then a style, then another of yours...
         val out = ArrayDeque<String>()
-        val a = personal.distinct().iterator()
-        val b = generic.iterator()
+        val flavour = flavours.random()
+        val a = personal.distinct().shuffled().iterator()
+        val b = generic.map { if ((0..2).random() == 0) "$it $flavour" else it }.iterator()
         while (a.hasNext() || b.hasNext()) {
             if (a.hasNext()) out.addLast(a.next())
             if (b.hasNext()) out.addLast(b.next())

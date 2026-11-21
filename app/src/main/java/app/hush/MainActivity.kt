@@ -186,7 +186,19 @@ private fun HushRoot(vm: HushVm = viewModel()) {
                 exitTransition = { fadeOut(tween(180)) },
                 popEnterTransition = { fadeIn(tween(180)) },
                 popExitTransition = { slideOutVertically(tween(280)) { it } }
-            ) { DjPlayerScreen(vm, onClose = { nav.popBackStack() }) }
+            ) {
+                DjPlayerScreen(
+                    vm,
+                    onClose = { nav.popBackStack() },
+                    onAddSongs = {
+                        nav.navigate("dj") {
+                            popUpTo(nav.graph.findStartDestination().id) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }
+                )
+            }
             composable("library") {
                 Page {
                     LibraryScreen(

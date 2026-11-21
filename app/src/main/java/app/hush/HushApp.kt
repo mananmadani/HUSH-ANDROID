@@ -5,6 +5,7 @@ import app.hush.data.HushDb
 import app.hush.data.Repo
 import app.hush.dj.DjEngine
 import app.hush.dj.DjFeed
+import app.hush.dj.DjHistory
 import app.hush.net.HushDownloader
 import app.hush.net.UpdateWorker
 import app.hush.player.PlayerController
@@ -34,6 +35,7 @@ class HushApp : Application() {
         Stats.init(this)
         Taste.init(this)
         Affinity.init(this)
+        DjHistory.init(this)
         UpdateWorker.schedule(this, Prefs.autoUpdate)
 
         // Ask YouTube Music in the phone's own language and country.
@@ -80,8 +82,15 @@ class HushApp : Application() {
             onTick = { Stats.tick(it) },
             pauseMain = { player.pauseForDj() }
         )
-        // Starting the normal player ends the DJ set, so two things never play at once.
-        player.onUserPlay = { dj.stop() }
+        // While a DJ set runs, songs chosen anywhere in the app are mixed into it.
+        player.djBusy = { dj.isRunning }
+        player.djPlay = { songs, index, shuffle, whole ->
+            if (dj.isRunning) { dj.mixInFromList(songs, index, shuffle, whole); true } else false
+        }
+        player.djToggle = { if (dj.isRunning) { dj.toggle(); true } else false }
+        player.djQueue = { song, next ->
+            if (dj.isRunning) { if (next) dj.playNext(song) else dj.enqueue(song); true } else false
+        }
 
         // Keep the home-screen widgets in step with what is playing.
         io.launch {

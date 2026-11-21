@@ -223,11 +223,11 @@ private fun PlayShuffleRow(songs: List<SongEntity>, vm: HushVm) {
             .padding(horizontal = 20.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Button(onClick = { vm.player.play(songs, 0) }, enabled = songs.isNotEmpty()) {
+        Button(onClick = { vm.player.play(songs, 0, whole = true) }, enabled = songs.isNotEmpty()) {
             Icon(Icons.Filled.PlayArrow, null)
             Text("Play", modifier = Modifier.padding(start = 6.dp))
         }
-        OutlinedButton(onClick = { vm.player.play(songs, 0, shuffle = true) }, enabled = songs.isNotEmpty()) {
+        OutlinedButton(onClick = { vm.player.play(songs, 0, shuffle = true, whole = true) }, enabled = songs.isNotEmpty()) {
             Icon(Icons.Filled.Shuffle, null)
             Text("Shuffle", modifier = Modifier.padding(start = 6.dp))
         }

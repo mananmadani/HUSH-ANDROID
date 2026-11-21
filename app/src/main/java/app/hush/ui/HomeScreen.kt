@@ -174,7 +174,7 @@ fun HomeScreen(
             if (hero != null && trending != null) {
                 item {
                     Box(Modifier.padding(top = 20.dp)) {
-                        HeroCard(hero) { vm.player.play(trending.songs, 0) }
+                        HeroCard(hero) { vm.player.play(trending.songs, 0, whole = true) }
                     }
                 }
             }
@@ -184,7 +184,7 @@ fun HomeScreen(
                         DailyMixCard(
                             count = vm.dailyMix.size,
                             onOpen = { haptic(Tap.Tick); onOpenDailyMix() },
-                            onPlay = { haptic(Tap.Heavy); vm.player.play(vm.dailyMix, 0) }
+                            onPlay = { haptic(Tap.Heavy); vm.player.play(vm.dailyMix, 0, whole = true) }
                         )
                     }
                 }

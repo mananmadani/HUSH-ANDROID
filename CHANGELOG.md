@@ -6,6 +6,21 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+## [1.0.19]
+
+### Added
+- **No more repeats in DJ mode.** Hush remembers the songs it played in recent sets (on your phone only) and skips them. Searches are more varied, the same artist is spread out, and a Refresh button rebuilds the list.
+- **Search and add.** The DJ tab has a search bar. Add any song to the DJ queue, play it next, or mix it in now.
+- **A queue you can manage.** "Up next" shows your queued songs. Drag the handle to reorder, tap the cross to remove. It also shows on the decks screen.
+- **Tapping a song mixes it in.** While a DJ set is on, any song you tap anywhere in the app mixes into the set instead of starting the normal player. Play and Shuffle buttons mix in the first song and queue the rest.
+- **More club feel.** A rising whoosh before each drop and a bass hit as the new song lands, loop rolls, short echo throws at the end of phrases, a vinyl-brake slowdown when you pause or stop, and mixes that start on the beginning of a phrase. Songs at double or half tempo now match, and songs that cannot be matched get a quick cut with an echo instead of a plain fade.
+- **Beat-driven decks screen.** The screen glows and the bars move with the beat. Nothing flashes. It also shows the set phase (Warm-up, Build, Peak, Breather, Cool-down) and a "Drop in" countdown.
+
+### Changed
+- Bass swap, filter sweeps and echo now run by themselves. The switches and effect pads are gone.
+- The effects are stronger, so you can hear them.
+
+
 ## [1.0.18]
 
 ### Added

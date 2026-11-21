@@ -66,7 +66,7 @@ fun DailyMixScreen(vm: HushVm, onBack: () -> Unit) {
                                     .height(46.dp)
                                     .clip(pill)
                                     .background(accent)
-                                    .clickable { haptic(Tap.Heavy); vm.player.play(songs, 0) }
+                                    .clickable { haptic(Tap.Heavy); vm.player.play(songs, 0, whole = true) }
                                     .padding(horizontal = 22.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
@@ -85,7 +85,7 @@ fun DailyMixScreen(vm: HushVm, onBack: () -> Unit) {
                                     .clip(pill)
                                     .background(Dusk.Raised)
                                     .border(1.dp, Dusk.Line, pill)
-                                    .clickable { haptic(Tap.Click); vm.player.play(songs, 0, shuffle = true) }
+                                    .clickable { haptic(Tap.Click); vm.player.play(songs, 0, shuffle = true, whole = true) }
                                     .padding(horizontal = 22.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
