@@ -3,6 +3,8 @@ package app.hush
 import android.app.Application
 import app.hush.data.HushDb
 import app.hush.data.Repo
+import app.hush.dj.DjEngine
+import app.hush.dj.DjFeed
 import app.hush.net.HushDownloader
 import app.hush.net.UpdateWorker
 import app.hush.player.PlayerController
@@ -22,6 +24,8 @@ class HushApp : Application() {
     lateinit var repo: Repo
         private set
     lateinit var player: PlayerController
+        private set
+    lateinit var dj: DjEngine
         private set
 
     override fun onCreate() {
@@ -53,6 +57,31 @@ class HushApp : Application() {
             },
             onTick = { Stats.tick(it) }
         )
+
+        dj = DjEngine(
+            this,
+            DjFeed(),
+            onTrackStarted = { song ->
+                io.launch {
+                    repo.recordPlay(song)
+                    Stats.recordPlay(song)
+                    Affinity.recordStart(song)
+                }
+            },
+            onTrackEnded = { song, how ->
+                io.launch {
+                    when (how) {
+                        1 -> Affinity.finished(song)
+                        2 -> Affinity.skipped(song)
+                        else -> Affinity.partlyPlayed(song)
+                    }
+                }
+            },
+            onTick = { Stats.tick(it) },
+            pauseMain = { player.pauseForDj() }
+        )
+        // Starting the normal player ends the DJ set, so two things never play at once.
+        player.onUserPlay = { dj.stop() }
 
         // Keep the home-screen widgets in step with what is playing.
         io.launch {

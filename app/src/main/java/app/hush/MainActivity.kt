@@ -49,6 +49,9 @@ import app.hush.net.CollectionItem
 import app.hush.ui.ArtistScreen
 import app.hush.ui.CollectionScreen
 import app.hush.ui.DailyMixScreen
+import app.hush.ui.DjMiniBar
+import app.hush.ui.DjPlayerScreen
+import app.hush.ui.DjScreen
 import app.hush.ui.Dusk
 import app.hush.ui.LocalOpenArtist
 import app.hush.ui.LocalOpenCollection
@@ -113,7 +116,7 @@ private fun enc(s: String): String =
 private fun dec(s: String): String =
     String(Base64.decode(s, Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING))
 
-private val TAB_ROUTES = listOf("home", "search", "library")
+private val TAB_ROUTES = listOf("home", "search", "library", "dj")
 
 /** Wraps a normal screen so it sits below the status bar. */
 @Composable
@@ -126,7 +129,8 @@ private fun HushRoot(vm: HushVm = viewModel()) {
     val nav = rememberNavController()
     val entry by nav.currentBackStackEntryAsState()
     val route = entry?.destination?.route
-    val inPlayer = route == "player"
+    val inPlayer = route == "player" || route == "djplayer"
+    val dj by vm.dj.ui.collectAsState()
     val onTab = route in TAB_ROUTES
     val player by vm.player.state.collectAsState()
     val accent = MaterialTheme.colorScheme.primary
@@ -145,11 +149,11 @@ private fun HushRoot(vm: HushVm = viewModel()) {
     ) {
         CompositionLocalProvider(
             LocalOpenArtist provides { name: String ->
-                if (route == "player") nav.popBackStack()
+                if (route == "player" || route == "djplayer") nav.popBackStack()
                 nav.navigate("artist/${enc(name)}")
             },
             LocalOpenCollection provides { c: CollectionItem ->
-                if (route == "player") nav.popBackStack()
+                if (route == "player" || route == "djplayer") nav.popBackStack()
                 nav.navigate("collection/${enc(listOf(c.url, c.title, c.thumb.orEmpty(), c.subtitle, c.count.toString()).joinToString("\n"))}")
             }
         ) {
@@ -175,6 +179,14 @@ private fun HushRoot(vm: HushVm = viewModel()) {
             }
             composable("dailymix") { Page { DailyMixScreen(vm, onBack = { nav.popBackStack() }) } }
             composable("search") { Page { SearchScreen(vm) } }
+            composable("dj") { Page { DjScreen(vm, onOpenDeck = { nav.navigate("djplayer") { launchSingleTop = true } }) } }
+            composable(
+                "djplayer",
+                enterTransition = { slideInVertically(tween(280)) { it } },
+                exitTransition = { fadeOut(tween(180)) },
+                popEnterTransition = { fadeIn(tween(180)) },
+                popExitTransition = { slideOutVertically(tween(280)) { it } }
+            ) { DjPlayerScreen(vm, onClose = { nav.popBackStack() }) }
             composable("library") {
                 Page {
                     LibraryScreen(
@@ -230,7 +242,14 @@ private fun HushRoot(vm: HushVm = viewModel()) {
                     .navigationBarsPadding()
                     .padding(start = 12.dp, end = 12.dp, bottom = 12.dp)
             ) {
-                if (player.mediaId != null) {
+                if (dj.running) {
+                    DjMiniBar(
+                        state = dj,
+                        onToggle = vm.dj::toggle,
+                        onOpen = { nav.navigate("djplayer") { launchSingleTop = true } }
+                    )
+                    Box(Modifier.padding(top = 8.dp))
+                } else if (player.mediaId != null) {
                     MiniPlayer(
                         state = player,
                         onToggle = vm.player::toggle,

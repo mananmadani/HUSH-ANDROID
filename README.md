@@ -26,6 +26,7 @@ and no account. It does one job and leaves everything else out.
 - **Library:** liked songs and your own playlists as clean cards with their covers, stored on your
   device, plus backup and restore to a file you keep. A backup holds everything (library, taste, stats and
   settings) and is locked with your password using AES-256, so a new phone keeps your recommendations.
+- **DJ mode:** a fourth tab with endless club-friendly songs picked from your taste, mixed on the beat with tempo matching, bass swaps, filter sweeps and echo outs.
 - **Daily Mix and listening stats:** a fresh mix each day and your top songs and artists, all worked out on your phone.
 - **Search inside playlists** and an **update check** that notifies you of new versions (on by default, can be turned off).
 - **Artists, albums and playlists:** search them, open their pages, play them or save them to your library.

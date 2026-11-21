@@ -6,6 +6,18 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+## [1.0.18]
+
+### Added
+- **DJ mode.** A new fourth tab, **DJ**, with an endless list of club-friendly songs picked from what you listen to most (remixes, techno, house and more). Tap a song or **Start DJ set** and Hush mixes the songs like a DJ: it matches the tempo, brings each new song in on the beat, swaps the bass, sweeps a filter and fades the old song out in an echo. The next songs are downloaded to temporary storage and analysed on your phone ahead of time, on Wi-Fi or mobile data.
+- **DJ decks screen.** Two spinning decks, BPM and speed, beat lights, a crossfader that shows the blend, an energy meter, effect pads, and **Mix now**, **Skip**, **Play/Pause** and **Stop** buttons.
+- **Set shapes.** Steady, Build up or Waves, so the set has highs and lows.
+- **DJ settings.** Switches for Bass swap, Filter sweeps and Echo out in Settings.
+
+### Good to know
+- Beat matching works best on steady dance music. Songs without a clear beat get a smooth fade instead.
+- DJ mode uses more data and battery than normal playback, because songs are downloaded first.
+
 ## [1.0.17]
 
 ### Added

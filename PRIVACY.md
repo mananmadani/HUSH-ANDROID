@@ -44,3 +44,7 @@ Hush is built to collect nothing.
   playback, and `POST_NOTIFICATIONS` for the playback notification.
 
 If this ever changes, it will be stated here and in the changelog.
+
+## DJ mode
+
+DJ mode downloads songs from YouTube to your phone's temporary cache so they can be analysed and mixed. The beat analysis happens entirely on your device, nothing is uploaded, and the temporary files are deleted when the set ends. The song suggestions use the same on-device taste data as the rest of Hush; only the search words go to YouTube Music.

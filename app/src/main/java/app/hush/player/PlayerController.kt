@@ -310,6 +310,7 @@ class PlayerController(
     /** Replace the queue with [songs] and start at [index]. */
     fun play(songs: List<SongEntity>, index: Int = 0, shuffle: Boolean = false) {
         if (songs.isEmpty()) return
+        onUserPlay?.invoke()
         // Songs marked "Don't play this" are left out, unless that exact song was tapped.
         val queue = songs.filterIndexed { i, s -> !Taste.isBlocked(s) || (!shuffle && i == index) }
             .ifEmpty { songs }
@@ -353,7 +354,20 @@ class PlayerController(
         c.play()
     }
 
-    fun toggle() = withController { c -> if (c.isPlaying) c.pause() else c.play() }
+    fun toggle() = withController { c ->
+        if (c.isPlaying) {
+            c.pause()
+        } else {
+            onUserPlay?.invoke()
+            c.play()
+        }
+    }
+
+    /** Called when the user starts normal playback (the DJ set stops itself). */
+    var onUserPlay: (() -> Unit)? = null
+
+    /** The DJ set is starting: silence the normal player. */
+    fun pauseForDj() = withController { it.pause() }
     fun next() = withController { it.seekToNextMediaItem() }
     fun previous() = withController {
         // Behave like every music app: restart the song first, go back if already near the start.

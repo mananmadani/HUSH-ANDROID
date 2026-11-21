@@ -34,6 +34,11 @@
             </intent-filter>
         </service>
 
+        <service
+            android:name=".dj.DjService"
+            android:exported="false"
+            android:foregroundServiceType="mediaPlayback" />
+
         <receiver
             android:name=".widget.NowPlayingWidget"
             android:exported="true"

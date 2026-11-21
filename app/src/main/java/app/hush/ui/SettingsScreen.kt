@@ -132,6 +132,25 @@ fun SettingsScreen(vm: HushVm, onBack: () -> Unit) {
             }
         }
 
+        GroupLabel("DJ MODE")
+        SettingsCard {
+            SwitchRow("Bass swap", "Trade the bass between songs while mixing", Prefs.djBassSwap) { Prefs.enableDjBass(it) }
+            CardDivider()
+            SwitchRow("Filter sweeps", "Open the new song up from muffled", Prefs.djFilter) { Prefs.enableDjFilter(it) }
+            CardDivider()
+            SwitchRow("Echo out", "Let the old song fade into an echo", Prefs.djEcho) { Prefs.enableDjEcho(it) }
+            CardDivider()
+            Row(
+                Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                listOf("Steady", "Build up", "Waves").forEachIndexed { i, label ->
+                    HushChip(label, Prefs.djShape == i) { Prefs.chooseDjShape(i) }
+                }
+            }
+        }
+
         GroupLabel("PRIVACY AND FEEL")
         SettingsCard {
             SwitchRow("Search suggestions", "Sends typing to YouTube", Prefs.suggestionsEnabled) {

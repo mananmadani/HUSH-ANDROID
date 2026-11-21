@@ -29,6 +29,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Album
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LibraryMusic
 import androidx.compose.material.icons.filled.MoreVert
@@ -560,7 +561,8 @@ private class NavItem(val route: String, val label: String, val icon: ImageVecto
 private val NAV_ITEMS = listOf(
     NavItem("home", "Home", Icons.Filled.Home),
     NavItem("search", "Search", Icons.Filled.Search),
-    NavItem("library", "Library", Icons.Filled.LibraryMusic)
+    NavItem("library", "Library", Icons.Filled.LibraryMusic),
+    NavItem("dj", "DJ", Icons.Filled.Album)
 )
 
 /** The floating pill at the bottom: the active tab expands to show its name. */

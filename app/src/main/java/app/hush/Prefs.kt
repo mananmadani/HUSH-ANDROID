@@ -35,6 +35,15 @@ object Prefs {
         private set
     var haptics by mutableStateOf(true)
         private set
+    var djBassSwap by mutableStateOf(true)
+        private set
+    var djFilter by mutableStateOf(true)
+        private set
+    var djEcho by mutableStateOf(true)
+        private set
+    /** 0 = Steady, 1 = Build up, 2 = Waves. */
+    var djShape by mutableStateOf(2)
+        private set
 
     private val current: Accent
         get() = ACCENTS[accentIndex.coerceIn(0, ACCENTS.lastIndex)]
@@ -54,6 +63,30 @@ object Prefs {
         light = sp.getBoolean("light", false)
         autoUpdate = sp.getBoolean("auto_update", true)
         haptics = sp.getBoolean("haptics", true)
+        djBassSwap = sp.getBoolean("dj_bass", true)
+        djFilter = sp.getBoolean("dj_filter", true)
+        djEcho = sp.getBoolean("dj_echo", true)
+        djShape = sp.getInt("dj_shape", 2)
+    }
+
+    fun enableDjBass(enabled: Boolean) {
+        djBassSwap = enabled
+        sp.edit().putBoolean("dj_bass", enabled).apply()
+    }
+
+    fun enableDjFilter(enabled: Boolean) {
+        djFilter = enabled
+        sp.edit().putBoolean("dj_filter", enabled).apply()
+    }
+
+    fun enableDjEcho(enabled: Boolean) {
+        djEcho = enabled
+        sp.edit().putBoolean("dj_echo", enabled).apply()
+    }
+
+    fun chooseDjShape(shape: Int) {
+        djShape = shape
+        sp.edit().putInt("dj_shape", shape).apply()
     }
 
     fun enableHaptics(enabled: Boolean) {

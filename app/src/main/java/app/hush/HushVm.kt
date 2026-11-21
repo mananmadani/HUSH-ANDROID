@@ -46,6 +46,7 @@ class HushVm(app: Application) : AndroidViewModel(app) {
     private val hush = app as HushApp
     val repo = hush.repo
     val player = hush.player
+    val dj = hush.dj
 
     // Library and history (local only)
     val liked = repo.liked()
