@@ -108,8 +108,7 @@ class PlayerController(
         }
 
         override fun onIsPlayingChanged(isPlaying: Boolean) {
-            // A headset button or lock screen must not start this player on top of a DJ set.
-            if (isPlaying && djBusy?.invoke() == true) controller?.pause()
+            if (isPlaying) onPlayStarted?.invoke()
         }
 
         override fun onEvents(player: Player, events: Player.Events) {
@@ -315,8 +314,6 @@ class PlayerController(
     /** Replace the queue with [songs] and start at [index]. */
     fun play(songs: List<SongEntity>, index: Int = 0, shuffle: Boolean = false, whole: Boolean = false) {
         if (songs.isEmpty()) return
-        // While a DJ set is on, a chosen song is mixed into the set instead of starting this player.
-        if (djPlay?.invoke(songs, index, shuffle, whole) == true) return
         // Songs marked "Don't play this" are left out, unless that exact song was tapped.
         val queue = songs.filterIndexed { i, s -> !Taste.isBlocked(s) || (!shuffle && i == index) }
             .ifEmpty { songs }
@@ -336,7 +333,6 @@ class PlayerController(
     }
 
     fun playNext(song: SongEntity) {
-        if (djQueue?.invoke(song, true) == true) return
         playNextNormal(song)
     }
 
@@ -346,7 +342,6 @@ class PlayerController(
     }
 
     fun addToQueue(song: SongEntity) {
-        if (djQueue?.invoke(song, false) == true) return
         addToQueueNormal(song)
     }
 
@@ -371,15 +366,11 @@ class PlayerController(
     }
 
     fun toggle() {
-        if (djToggle?.invoke() == true) return
         withController { c -> if (c.isPlaying) c.pause() else c.play() }
     }
 
-    /** Hooks the DJ set uses while it runs. Each returns true when the DJ handled the request. */
-    var djPlay: ((List<SongEntity>, Int, Boolean, Boolean) -> Boolean)? = null
-    var djToggle: (() -> Boolean)? = null
-    var djQueue: ((SongEntity, Boolean) -> Boolean)? = null
-    var djBusy: (() -> Boolean)? = null
+    /** Called when normal playback starts, so a DJ set can step aside (DJ mode is separate). */
+    var onPlayStarted: (() -> Unit)? = null
 
     /** The DJ set is starting: silence the normal player. */
     fun pauseForDj() = withController { it.pause() }

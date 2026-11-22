@@ -268,7 +268,8 @@ private fun HushRoot(vm: HushVm = viewModel()) {
                     .navigationBarsPadding()
                     .padding(start = 12.dp, end = 12.dp, bottom = 12.dp)
             ) {
-                if (dj.running) {
+                val showDj = dj.running && (dj.playing || player.mediaId == null)
+                if (showDj) {
                     DjMiniBar(
                         state = dj,
                         onToggle = vm.dj::toggle,

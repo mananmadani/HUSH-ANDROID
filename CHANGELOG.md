@@ -6,6 +6,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+## [1.0.21]
+
+### Changed
+- **DJ mode is now fully separate from the rest of the app.** Songs you play outside the DJ tab always start normally, and are never mixed into a DJ set. Queue buttons (Play next, Add to queue) outside the DJ tab belong to the normal player only.
+- DJ mode and normal playback no longer play at the same time: starting one pauses the other, and the DJ set is kept so you can resume it. It no longer ends when you play a normal song.
+- The mini player at the bottom shows whichever of the two is playing.
+
+
 ## [1.0.20]
 
 ### Added

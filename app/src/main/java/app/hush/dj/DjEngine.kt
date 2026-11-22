@@ -418,6 +418,7 @@ class DjEngine(
     fun resume() {
         if (!running || !paused) return
         requestFocus()
+        pauseMain()
         paused = false
         if (braking == 1) {
             // Changed our mind in the middle of the slow-down.

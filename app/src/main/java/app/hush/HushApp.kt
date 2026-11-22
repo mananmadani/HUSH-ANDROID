@@ -71,15 +71,8 @@ class HushApp : Application() {
             onTick = { DjStats.tick(it) },
             pauseMain = { player.pauseForDj() }
         )
-        // While a DJ set runs, songs chosen anywhere in the app are mixed into it.
-        player.djBusy = { dj.isRunning }
-        player.djPlay = { songs, index, shuffle, whole ->
-            if (dj.isRunning) { dj.mixInFromList(songs, index, shuffle, whole); true } else false
-        }
-        player.djToggle = { if (dj.isRunning) { dj.toggle(); true } else false }
-        player.djQueue = { song, next ->
-            if (dj.isRunning) { if (next) dj.playNext(song) else dj.enqueue(song); true } else false
-        }
+        // DJ mode and normal playback are separate. When one starts, the other pauses (it is not ended).
+        player.onPlayStarted = { if (dj.isRunning) dj.pause() }
 
         // Keep the home-screen widgets in step with what is playing.
         io.launch {
