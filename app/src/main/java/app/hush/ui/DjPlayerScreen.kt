@@ -191,6 +191,15 @@ fun DjPlayerScreen(vm: HushVm, onClose: () -> Unit, onOpenQueue: () -> Unit) {
             modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
             textAlign = TextAlign.Center
         )
+        if (!ui.decks[0].loaded && !ui.decks[1].loaded) {
+            Text(
+                "Developed by Manan Madani",
+                fontSize = 12.sp,
+                color = Dusk.Muted,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth().padding(top = 6.dp)
+            )
+        }
         if (ui.nextTitle != null) {
             Text(
                 "Up next: ${ui.nextTitle}",

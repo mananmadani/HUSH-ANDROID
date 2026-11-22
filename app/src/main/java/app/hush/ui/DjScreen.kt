@@ -314,7 +314,7 @@ fun DjScreen(vm: HushVm, onOpenDeck: () -> Unit, onOpenStats: () -> Unit) {
             item {
                 if (searching) {
                     Box(Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator(modifier = Modifier.size(26.dp), strokeWidth = 3.dp)
+                        LoadingSpinner()
                     }
                 }
                 Spacer(Modifier.height(190.dp))

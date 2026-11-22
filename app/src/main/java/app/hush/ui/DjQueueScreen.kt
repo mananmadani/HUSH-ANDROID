@@ -238,7 +238,7 @@ private fun LazyListScope.queueSection(vm: HushVm, size: Int) {
 @Composable
 private fun Spinner() {
     Box(Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
-        CircularProgressIndicator(modifier = Modifier.size(26.dp), strokeWidth = 3.dp)
+        LoadingSpinner()
     }
 }
 

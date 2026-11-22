@@ -135,7 +135,7 @@ fun SearchScreen(vm: HushVm) {
         Box(Modifier.weight(1f).fillMaxWidth()) {
             when {
                 vm.searching -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
+                    LoadingSpinner()
                 }
 
                 vm.searchError != null -> CenterMessage(vm.searchError ?: "") {

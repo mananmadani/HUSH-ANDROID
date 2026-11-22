@@ -2,41 +2,89 @@ package app.hush.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.DeleteOutline
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.hush.HushVm
+import app.hush.data.SongEntity
+import app.hush.dj.DjHistory
 import app.hush.dj.DjStats
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
-/** DJ mode's own history and numbers. They are kept apart from normal listening. */
+private val DANGER = Color(0xFFE5484D)
+
+private fun djTime(ms: Long): String {
+    val minutes = ms / 60_000L
+    return if (minutes >= 60) "${minutes / 60}h ${minutes % 60}m" else "${minutes}m"
+}
+
+private fun djPlays(n: Int) = if (n == 1) "1 play" else "$n plays"
+
+private fun ago(at: Long): String {
+    val minutes = (System.currentTimeMillis() - at) / 60_000L
+    return when {
+        minutes < 1 -> "now"
+        minutes < 60 -> "${minutes}m ago"
+        minutes < 24 * 60 -> "${minutes / 60}h ago"
+        else -> SimpleDateFormat("d MMM", Locale.getDefault()).format(Date(at))
+    }
+}
+
+/** DJ mode's own history and numbers, laid out like the normal listening stats. */
 @Composable
 fun DjStatsScreen(vm: HushVm, onBack: () -> Unit, onOpenDeck: () -> Unit) {
     val s by DjStats.summary.collectAsState()
     val ui by vm.dj.ui.collectAsState()
-    val context = LocalContext.current
+    val haptic = rememberHaptics()
+    val accent = MaterialTheme.colorScheme.primary
+    var confirmReset by remember { mutableStateOf(false) }
 
-    LazyColumn(Modifier.fillMaxWidth()) {
+    fun openSong(song: SongEntity) {
+        haptic(Tap.Tick)
+        if (ui.running) vm.dj.mixIn(song) else {
+            vm.dj.startWith(song)
+            onOpenDeck()
+        }
+    }
+
+    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 190.dp)) {
         item {
             Row(
                 Modifier.padding(start = 12.dp, end = 12.dp, top = 12.dp),
@@ -44,7 +92,7 @@ fun DjStatsScreen(vm: HushVm, onBack: () -> Unit, onOpenDeck: () -> Unit) {
             ) {
                 RoundIconButton(Icons.AutoMirrored.Filled.ArrowBack, "Back", onBack)
                 Text(
-                    "DJ history and stats",
+                    "DJ stats",
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.padding(start = 14.dp)
                 )
@@ -53,88 +101,231 @@ fun DjStatsScreen(vm: HushVm, onBack: () -> Unit, onOpenDeck: () -> Unit) {
                 "Kept apart from your normal listening history and stats.",
                 fontSize = 12.sp,
                 color = Dusk.Muted,
-                modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 10.dp)
+                modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 12.dp, bottom = 16.dp)
             )
-            Row(
-                Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 14.dp),
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                StatCard("Sets", s.sets.toString(), Modifier.weight(1f))
-                StatCard("Songs played", s.plays.toString(), Modifier.weight(1f))
-                StatCard("Time", djTime(s.listenMs), Modifier.weight(1f))
-            }
         }
 
         if (s.plays == 0) {
             item {
-                Text(
-                    "Nothing yet. Start a DJ set and it will show up here.",
-                    color = Dusk.Muted,
-                    fontSize = 14.sp,
-                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 24.dp)
-                )
+                Box(Modifier.fillMaxWidth().height(260.dp)) {
+                    CenterMessage("Nothing here yet. Start a DJ set and your DJ stats will appear. They stay on your phone.")
+                }
             }
-        }
-
-        if (s.topArtists.isNotEmpty()) {
-            item { Header("TOP ARTISTS") }
-            items(s.topArtists, key = { "a" + it.first }) { (name, plays) ->
+        } else {
+            item {
                 Row(
-                    Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp),
+                    Modifier.padding(horizontal = 20.dp),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    DjStatCard(djTime(s.listenMs), "listened", highlight = true)
+                    DjStatCard("${s.sets}", "sets")
+                    DjStatCard("${s.plays}", "plays")
+                }
+            }
+
+            if (s.topSongs.isNotEmpty()) {
+                item { SectionTitle("Top songs", Modifier.padding(start = 20.dp, top = 28.dp, bottom = 10.dp)) }
+                item {
+                    Column(Modifier.djCard()) {
+                        s.topSongs.take(10).forEachIndexed { i, e ->
+                            Row(
+                                Modifier
+                                    .fillMaxWidth()
+                                    .clickable { openSong(e.song) }
+                                    .padding(horizontal = 14.dp, vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    "${i + 1}",
+                                    fontSize = 17.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (i == 0) accent else Dusk.Muted,
+                                    modifier = Modifier.width(28.dp)
+                                )
+                                Art(e.song.thumb, 46.dp, radius = 12.dp, seed = e.song.title)
+                                Column(Modifier.weight(1f).padding(start = 12.dp)) {
+                                    Text(
+                                        e.song.title,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                        fontSize = 15.sp,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                    Text(
+                                        e.song.artist,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                        fontSize = 12.sp,
+                                        color = Dusk.Muted
+                                    )
+                                }
+                                Text(djPlays(e.plays), fontSize = 12.sp, color = Dusk.Muted, modifier = Modifier.padding(start = 8.dp))
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (s.topArtists.isNotEmpty()) {
+                item { SectionTitle("Top artists", Modifier.padding(start = 20.dp, top = 28.dp, bottom = 10.dp)) }
+                item {
+                    val artists = s.topArtists.take(5)
+                    val most = (artists.firstOrNull()?.second ?: 1).coerceAtLeast(1)
+                    Column(Modifier.djCard()) {
+                        artists.forEachIndexed { i, artist ->
+                            Column(Modifier.padding(horizontal = 16.dp, vertical = 11.dp)) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(
+                                        "${i + 1}",
+                                        fontSize = 17.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = if (i == 0) accent else Dusk.Muted,
+                                        modifier = Modifier.width(28.dp)
+                                    )
+                                    Text(
+                                        artist.first,
+                                        modifier = Modifier.weight(1f),
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                        fontSize = 15.sp,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                    Text(djPlays(artist.second), fontSize = 12.sp, color = Dusk.Muted)
+                                }
+                                Box(
+                                    Modifier
+                                        .padding(start = 28.dp, top = 8.dp)
+                                        .fillMaxWidth()
+                                        .height(4.dp)
+                                        .clip(RoundedCornerShape(2.dp))
+                                        .background(Dusk.Line)
+                                ) {
+                                    Box(
+                                        Modifier
+                                            .fillMaxWidth(artist.second.toFloat() / most)
+                                            .height(4.dp)
+                                            .clip(RoundedCornerShape(2.dp))
+                                            .background(accent)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (s.recent.isNotEmpty()) {
+                item { SectionTitle("Recently played", Modifier.padding(start = 20.dp, top = 28.dp, bottom = 10.dp)) }
+                item {
+                    Column(Modifier.djCard()) {
+                        s.recent.take(20).forEach { e ->
+                            Row(
+                                Modifier
+                                    .fillMaxWidth()
+                                    .clickable { openSong(e.song) }
+                                    .padding(horizontal = 14.dp, vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Art(e.song.thumb, 46.dp, radius = 12.dp, seed = e.song.title)
+                                Column(Modifier.weight(1f).padding(start = 12.dp)) {
+                                    Text(
+                                        e.song.title,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                        fontSize = 15.sp,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                    Text(
+                                        e.song.artist,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                        fontSize = 12.sp,
+                                        color = Dusk.Muted
+                                    )
+                                }
+                                Text(ago(e.lastAt), fontSize = 12.sp, color = Dusk.Muted, modifier = Modifier.padding(start = 8.dp))
+                            }
+                        }
+                    }
+                }
+            }
+
+            item {
+                val shape = RoundedCornerShape(22.dp)
+                Row(
+                    Modifier
+                        .padding(horizontal = 20.dp, vertical = 28.dp)
+                        .fillMaxWidth()
+                        .height(52.dp)
+                        .clip(shape)
+                        .border(1.dp, DANGER.copy(alpha = 0.55f), shape)
+                        .background(DANGER.copy(alpha = 0.08f))
+                        .clickable { haptic(Tap.Tick); confirmReset = true },
+                    horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(name, fontSize = 15.sp, fontWeight = FontWeight.Medium, modifier = Modifier.weight(1f))
-                    Text(if (plays == 1) "1 play" else "$plays plays", fontSize = 13.sp, color = Dusk.Muted)
+                    Icon(Icons.Filled.DeleteOutline, contentDescription = null, tint = DANGER, modifier = Modifier.size(20.dp))
+                    Text(
+                        "Reset DJ stats",
+                        color = DANGER,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.padding(start = 8.dp)
+                    )
                 }
             }
         }
+    }
 
-        if (s.topSongs.isNotEmpty()) {
-            item { Header("TOP SONGS") }
-            items(s.topSongs, key = { "t" + it.song.url }) { e ->
-                DjSongRow(vm, e.song, ui.running, onOpenDeck, context)
+    if (confirmReset) {
+        AlertDialog(
+            onDismissRequest = { confirmReset = false },
+            title = { Text("Reset DJ stats?") },
+            text = { Text("Your DJ history and stats on this phone will be cleared. Your normal listening is not touched.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    haptic(Tap.Confirm)
+                    DjStats.clear()
+                    DjHistory.clear()
+                    confirmReset = false
+                }) { Text("Reset", color = DANGER) }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmReset = false }) { Text("Cancel") }
             }
-        }
-
-        if (s.recent.isNotEmpty()) {
-            item { Header("RECENTLY PLAYED") }
-            items(s.recent, key = { "r" + it.song.url }) { e ->
-                DjSongRow(vm, e.song, ui.running, onOpenDeck, context)
-            }
-        }
-        item { Spacer(Modifier.height(190.dp)) }
+        )
     }
 }
 
-@Composable
-private fun Header(text: String) {
-    Text(
-        text,
-        fontSize = 12.sp,
-        letterSpacing = 1.4.sp,
-        fontWeight = FontWeight.SemiBold,
-        color = Dusk.Muted,
-        modifier = Modifier.padding(start = 20.dp, end = 12.dp, top = 24.dp, bottom = 6.dp)
-    )
+private fun Modifier.djCard(): Modifier {
+    val shape = RoundedCornerShape(22.dp)
+    return this
+        .padding(horizontal = 16.dp)
+        .fillMaxWidth()
+        .clip(shape)
+        .background(Dusk.Raised)
+        .border(1.dp, Dusk.Line, shape)
 }
 
 @Composable
-private fun StatCard(label: String, value: String, modifier: Modifier) {
-    val shape = RoundedCornerShape(18.dp)
+private fun RowScope.DjStatCard(value: String, label: String, highlight: Boolean = false) {
+    val shape = RoundedCornerShape(20.dp)
     Column(
-        modifier
+        Modifier
+            .weight(1f)
             .clip(shape)
-            .background(Dusk.Raised)
-            .border(1.dp, Dusk.Line, shape)
-            .padding(vertical = 14.dp, horizontal = 12.dp),
+            .background(if (highlight) MaterialTheme.colorScheme.primary else Dusk.Raised)
+            .then(if (highlight) Modifier else Modifier.border(1.dp, Dusk.Line, shape))
+            .padding(vertical = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(value, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-        Text(label, fontSize = 12.sp, color = Dusk.Muted, modifier = Modifier.padding(top = 2.dp))
+        Text(
+            value,
+            fontSize = 22.sp,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center,
+            color = if (highlight) Dusk.OnAccent else Dusk.Text
+        )
+        Text(label, fontSize = 12.sp, color = if (highlight) Dusk.OnAccent.copy(alpha = 0.8f) else Dusk.Muted)
     }
-}
-
-private fun djTime(ms: Long): String {
-    val minutes = ms / 60_000L
-    return if (minutes >= 60) "${minutes / 60}h ${minutes % 60}m" else "${minutes}m"
 }

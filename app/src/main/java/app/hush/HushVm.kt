@@ -193,6 +193,8 @@ class HushVm(app: Application) : AndroidViewModel(app) {
             homeLoading = true
             homeError = null
             shelves = emptyList()
+            // A refresh also refreshes the open mood mix.
+            mood?.let { selectMood(it) }
 
             val likedSongs = runCatching { repo.liked().first() }.getOrDefault(emptyList())
             val likedUrls = likedSongs.map { it.url }.toSet()
@@ -239,7 +241,11 @@ class HushVm(app: Application) : AndroidViewModel(app) {
                     )
                 }
                 Shelves.forRegion(Region.countryCode, Region.countryName).forEach { spec ->
-                    add(ShelfSource(spec.title) { Taste.filterBlocked(YtMusic.search(spec.query)) })
+                    val trendingRow = spec.title.startsWith("Trending")
+                    add(ShelfSource(spec.title) {
+                        val found = Taste.filterBlocked(YtMusic.search(Variety.query(spec.query)))
+                        if (trendingRow) found else found.shuffled()
+                    })
                 }
             }
 
@@ -275,7 +281,9 @@ class HushVm(app: Application) : AndroidViewModel(app) {
         }
         moodJob = viewModelScope.launch {
             moodLoading = true
-            moodSongs = Taste.filterBlocked(runCatching { YtMusic.search(selected.query) }.getOrDefault(emptyList()))
+            moodSongs = Taste.filterBlocked(
+                runCatching { YtMusic.search(Variety.query(selected.query)) }.getOrDefault(emptyList())
+            ).shuffled()
             ensureActive()
             moodLoading = false
         }

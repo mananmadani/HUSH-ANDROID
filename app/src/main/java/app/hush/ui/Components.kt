@@ -612,3 +612,18 @@ fun FloatingNav(current: String?, onSelect: (String) -> Unit, modifier: Modifier
         }
     }
 }
+
+/** The spinner shown on every loading screen, with the credit line underneath. */
+@Composable
+fun LoadingSpinner(modifier: Modifier = Modifier) {
+    Column(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
+        CircularProgressIndicator()
+        Text(
+            "Developed by Manan Madani",
+            fontSize = 12.sp,
+            color = Dusk.Muted,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(top = 14.dp)
+        )
+    }
+}

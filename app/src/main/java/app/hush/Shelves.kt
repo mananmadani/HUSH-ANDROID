@@ -48,6 +48,23 @@ object Shelves {
             else -> emptyList()
         }
 
-        return local + regional + GLOBAL
+        return local + (regional + GLOBAL).shuffled()
+    }
+}
+
+/**
+ * Keeps the lists that are not personal fresh. A search with a different extra word, and a different
+ * order, brings back different songs each time, so Home and the mood mixes keep changing.
+ */
+object Variety {
+    private val words = listOf("new", "latest", "best", "popular", "viral", "trending", "hot", "fresh", "top")
+
+    fun query(base: String): String {
+        val year = java.util.Calendar.getInstance().get(java.util.Calendar.YEAR)
+        return when ((0..4).random()) {
+            0 -> base
+            1 -> "$base $year"
+            else -> "$base ${words.random()}"
+        }
     }
 }

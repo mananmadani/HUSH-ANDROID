@@ -12,6 +12,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 - **DJ mode is now fully separate from the rest of the app.** Songs you play outside the DJ tab always start normally, and are never mixed into a DJ set. Queue buttons (Play next, Add to queue) outside the DJ tab belong to the normal player only.
 - DJ mode and normal playback no longer play at the same time: starting one pauses the other, and the DJ set is kept so you can resume it. It no longer ends when you play a normal song.
 - The mini player at the bottom shows whichever of the two is playing.
+- **DJ stats look like the normal stats.** The DJ stats page now matches the listening stats page (listened, sets and plays cards, top songs, top artists, recently played). **Reset DJ stats** is on that page and no longer in Settings.
+- **Fresher lists.** Home rows, the mood mixes and the DJ suggestions that are not personal now change every time, and a refresh brings new songs. Refreshing Home also refreshes the open mood mix.
+
+### Added
+- **DJ is in backups.** Your DJ history, DJ stats and set mood are saved and restored with the rest of your backup.
+- **Credit on every loading screen.** "Developed by Manan Madani" now shows under every loading spinner in the app.
 
 
 ## [1.0.20]

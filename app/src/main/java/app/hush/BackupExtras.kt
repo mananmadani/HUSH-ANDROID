@@ -13,10 +13,10 @@ import org.json.JSONObject
 object BackupExtras {
 
     /** Everything in these is copied across and replaced on restore. */
-    private val LEARNED = listOf("hush_stats", "hush_taste", "hush_affinity")
+    private val LEARNED = listOf("hush_stats", "hush_taste", "hush_affinity", "hush_dj", "hush_dj_stats")
 
     /** Only these settings are copied, not the update-check bookkeeping. */
-    private val SETTINGS = setOf("accent", "suggestions", "light", "auto_update", "haptics", "recent_searches")
+    private val SETTINGS = setOf("accent", "suggestions", "light", "auto_update", "haptics", "recent_searches", "dj_shape")
 
     fun dump(context: Context): JSONObject {
         val stores = JSONObject()
@@ -63,6 +63,8 @@ object BackupExtras {
         Stats.init(context)
         Taste.init(context)
         Affinity.init(context)
+        app.hush.dj.DjHistory.init(context)
+        app.hush.dj.DjStats.init(context)
         Prefs.init(context)
         return any
     }

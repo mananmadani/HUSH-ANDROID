@@ -145,7 +145,7 @@ fun ArtistScreen(vm: HushVm, name: String, onBack: () -> Unit) {
             )
 
             failed -> CenterMessage("Couldn't load this artist. Check your connection and try again.")
-            else -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+            else -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { LoadingSpinner() }
         }
     }
 }
@@ -210,7 +210,7 @@ fun CollectionScreen(vm: HushVm, entry: CollectionItem, onBack: () -> Unit) {
             )
 
             failed -> CenterMessage("Couldn't load this one. Check your connection and try again.")
-            else -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+            else -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { LoadingSpinner() }
         }
     }
 }

@@ -141,7 +141,7 @@ fun HomeScreen(
             if (vm.moodLoading) {
                 item {
                     Box(Modifier.fillMaxWidth().height(160.dp), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator()
+                        LoadingSpinner()
                     }
                 }
             } else {
@@ -161,7 +161,7 @@ fun HomeScreen(
         } else if (nothing && vm.homeLoading) {
             item {
                 Box(Modifier.fillMaxWidth().height(360.dp), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
+                    LoadingSpinner()
                 }
             }
         } else if (nothing && vm.homeError != null) {

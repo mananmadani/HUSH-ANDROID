@@ -143,12 +143,6 @@ fun SettingsScreen(vm: HushVm, onBack: () -> Unit) {
                     HushChip(label, Prefs.djShape == i) { Prefs.chooseDjShape(i) }
                 }
             }
-            CardDivider()
-            SettingRow("Clear DJ history and stats") {
-                app.hush.dj.DjStats.clear()
-                app.hush.dj.DjHistory.clear()
-                Toast.makeText(context, "DJ history cleared", Toast.LENGTH_SHORT).show()
-            }
         }
 
         GroupLabel("PRIVACY AND FEEL")

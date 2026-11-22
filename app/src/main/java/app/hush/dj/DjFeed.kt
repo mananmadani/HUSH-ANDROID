@@ -29,7 +29,7 @@ class DjFeed {
     private val lock = Mutex()
     private val seen = HashSet<String>()
     private var queries: ArrayDeque<String> = ArrayDeque()
-    private var round = 0
+    private var round = (0..20).random()
 
     private val styles = listOf(
         "techno", "tech house", "house music", "deep house", "progressive house", "melodic techno",
@@ -54,7 +54,7 @@ class DjFeed {
     suspend fun reset() = lock.withLock {
         seen.clear()
         queries = ArrayDeque()
-        round = 0
+        round = (0..20).random()
         _songs.value = emptyList<SongEntity>()
     }
 
@@ -154,7 +154,7 @@ class DjFeed {
         val out = ArrayDeque<String>()
         val flavour = flavours.random()
         val a = personal.distinct().shuffled().iterator()
-        val b = generic.map { if ((0..2).random() == 0) "$it $flavour" else it }.iterator()
+        val b = generic.map { if ((0..2).random() < 2) "$it $flavour" else it }.iterator()
         while (a.hasNext() || b.hasNext()) {
             if (a.hasNext()) out.addLast(a.next())
             if (b.hasNext()) out.addLast(b.next())
