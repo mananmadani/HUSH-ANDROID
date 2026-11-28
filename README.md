@@ -10,6 +10,8 @@
 **A quiet music player for Android.** Hush streams music from YouTube Music with no ads, no tracking
 and no account. It does one job and leaves everything else out.
 
+> **Like Hush? Give it a ⭐** at the top of this page. It's free, and it helps other people find the app.
+
 <p align="center">
   <img src="docs/screenshots/home.jpg" width="23%" alt="Home screen with mood chips and trending songs">
   <img src="docs/screenshots/player.jpg" width="23%" alt="Now playing screen">
@@ -35,7 +37,7 @@ and no account. It does one job and leaves everything else out.
 - **Library:** liked songs and your own playlists as clean cards with their covers, stored on your
   device, plus backup and restore to a file you keep. A backup holds everything (library, taste, stats and
   settings) and is locked with your password using AES-256, so a new phone keeps your recommendations.
-- **DJ mode:** a fourth tab with endless club-friendly songs picked from your taste, mixed on the beat with tempo matching, bass swaps, filter sweeps and echo outs.
+- **DJ mode:** a tab of its own with endless club-friendly songs picked from your taste, mixed on the beat with tempo matching, bass swaps, filter sweeps and echo outs. Search and queue songs, drag to reorder, and it keeps its own history and stats, separate from normal playback.
 - **Daily Mix and listening stats:** a fresh mix each day and your top songs and artists, all worked out on your phone.
 - **Search inside playlists** and an **update check** that notifies you of new versions (on by default, can be turned off).
 - **Artists, albums and playlists:** search them, open their pages, play them or save them to your library.
@@ -57,6 +59,10 @@ any kind. Recommendations are built on your device from your own likes and histo
 1. Tap the button above, then download the `.apk` file listed under **Assets**.
 2. Open the file on your phone. If asked, allow installing from unknown sources.
 3. Open Hush and allow notifications, so the playback controls can show.
+
+**Prefer automatic updates?** Add Hush to [Obtainium](https://obtainium.imranr.dev/) with this link
+(Obtainium installed): [Add Hush to Obtainium](obtainium://add/https://github.com/mananmadani/HUSH-ANDROID).
+It watches the releases here and tells you when a new version is out.
 
 Requires Android 8.0 (API 26) or newer. Releases are signed with a permanent key, so new versions
 install over the old one and keep your liked songs and playlists.
@@ -105,6 +111,18 @@ which uses YouTube's unofficial, undocumented endpoints. This may conflict with 
 Service, and it can stop working at any time when YouTube changes things. When that happens, updating
 the NewPipeExtractor version in `app/build.gradle.kts` is usually the fix. Use Hush at your own risk
 and for personal use. Please support the artists you listen to.
+
+## Help Hush grow
+
+Hush is a one-person project, and a few small things make a real difference:
+
+- **Star the repo** so others can find it.
+- **Tell a friend** who is tired of ads in their music app.
+- **Report bugs and ideas** in [Issues](https://github.com/mananmadani/HUSH-ANDROID/issues). Every
+  message gets read.
+- **Share a screenshot or short clip** of Hush, especially DJ mode, on your socials.
+
+Website: <https://mananmadani.github.io/HUSH-ANDROID/>
 
 ## Contributing
 
