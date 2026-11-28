@@ -251,6 +251,10 @@ private fun AddRow(vm: HushVm, song: SongEntity, running: Boolean, context: andr
             android.widget.Toast.makeText(context, "Added to the DJ queue", android.widget.Toast.LENGTH_SHORT).show()
         },
         actions = listOf(
+            "Add to DJ queue" to {
+                vm.dj.enqueue(song)
+                android.widget.Toast.makeText(context, "Added to the DJ queue", android.widget.Toast.LENGTH_SHORT).show()
+            },
             "Play next" to {
                 vm.dj.playNext(song)
                 android.widget.Toast.makeText(context, "Playing next", android.widget.Toast.LENGTH_SHORT).show()

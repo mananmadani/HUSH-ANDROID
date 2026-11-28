@@ -6,6 +6,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+## [1.0.22]
+
+### Fixed
+- The credit line "Developed by Manan Madani" showed twice while the Home screen was loading. It now shows once.
+- When adding songs from the DJ deck's search, the three-dot menu now has **Add to DJ queue** next to Play next and Mix in now.
+
 ## [1.0.21]
 
 ### Changed

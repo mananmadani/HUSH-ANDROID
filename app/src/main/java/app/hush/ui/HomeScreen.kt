@@ -242,7 +242,9 @@ fun HomeScreen(
                 item { ShelfRow(shelf.title, shelf.songs, vm) }
             }
         }
-        item {
+        // The spinner already carries the credit line, so the footer is only for loaded pages.
+        val spinnerShowing = if (mood != null) vm.moodLoading else (nothing && vm.homeLoading)
+        if (!spinnerShowing) item {
             Text(
                 "Developed by Manan Madani",
                 fontSize = 12.sp,
