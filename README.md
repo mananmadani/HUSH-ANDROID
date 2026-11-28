@@ -10,6 +10,15 @@
 **A quiet music player for Android.** Hush streams music from YouTube Music with no ads, no tracking
 and no account. It does one job and leaves everything else out.
 
+<p align="center">
+  <img src="docs/screenshots/home.jpg" width="23%" alt="Home screen with mood chips and trending songs">
+  <img src="docs/screenshots/player.jpg" width="23%" alt="Now playing screen">
+  <img src="docs/screenshots/dj.jpg" width="23%" alt="DJ tab with songs picked for you">
+  <img src="docs/screenshots/dj-decks.jpg" width="23%" alt="DJ decks mixing two songs">
+</p>
+
+<p align="center"><sub>Home, the player, the DJ tab and the DJ decks. Cover art belongs to its respective owners.</sub></p>
+
 ## Features
 
 - **Home that fits you:** rows for your country and language, "Because you liked ..." picks built
